@@ -1,20 +1,22 @@
 "use client";
 
 import { useState } from 'react';
-import ModalAdicionarProduto from '@/components/ModalAdicionarProduto'; // Verifique se este caminho está correto
+import ModalAdicionarProduto from '@/components/ModalAdicionarProduto';
 
-const mockProdutos = [
-  { id: 1, nome: 'Teclado Mecânico RGB', sku: 'TEC-001', preco: 250.50, quantidade: 30 },
-  { id: 2, nome: 'Mouse Gamer 16000 DPI', sku: 'MOU-002', preco: 180.00, quantidade: 50 },
-  { id: 3, nome: 'Monitor Ultrawide 29"', sku: 'MON-003', preco: 1200.75, quantidade: 15 },
-  { id: 4, nome: 'Headset 7.1 Surround', sku: 'HEA-004', preco: 350.00, quantidade: 25 },
-];
-
-export default function ProdutosPage() {
+// Renomeado para não conflitar com a rota /produtos que vamos criar
+export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Dados de exemplo
+  const mockProdutos = [
+    { id: 1, nome: 'Teclado Mecânico RGB', sku: 'TEC-001', preco: 250.50, quantidade: 30 },
+    { id: 2, nome: 'Mouse Gamer 16000 DPI', sku: 'MOU-002', preco: 180.00, quantidade: 50 },
+    { id: 3, nome: 'Monitor Ultrawide 29"', sku: 'MON-003', preco: 1200.75, quantidade: 15 },
+    { id: 4, nome: 'Headset 7.1 Surround', sku: 'HEA-004', preco: 350.00, quantidade: 25 },
+  ];
+
   return (
-    <div className="p-8 w-full max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-brand-dark">
           Gestão de Estoque
