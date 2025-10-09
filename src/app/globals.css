@@ -14,3 +14,20 @@ body {
   background-color: var(--color-brand-light);
   color: var(--color-brand-dark);
 }
+@media print {
+  /* Esconde tudo no corpo da página por padrão */
+  body * {
+    visibility: hidden;
+  }
+  /* Mostra a seção de impressão e tudo dentro dela */
+  .print-section, .print-section * {
+    visibility: visible;
+  }
+  /* Garante que a seção de impressão ocupe a página toda */
+  .print-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
