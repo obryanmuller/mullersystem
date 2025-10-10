@@ -7,6 +7,13 @@ import ModalVendaConcluida from '@/components/ModalVendaConcluida';
 // Tipos
 type Produto = { id: number; nome: string; sku: string; preco: number; quantidade: number; };
 type CartItem = { produto: Produto; quantidade: number; };
+type Venda = {
+  id: number;
+  itens: CartItem[];
+  total: number;
+  pagamento: string;
+  cliente?: string;
+};
 
 // Dados de Exemplo
 const mockProdutos: Produto[] = [
@@ -21,9 +28,10 @@ const mockProdutos: Produto[] = [
 export default function VendasPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [discount, setDiscount] = useState(0);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [lastSaleData, setLastSaleData] = useState(null);
+  const [lastSaleData, setLastSaleData] = useState<Venda | null>(null);
 
   const addToCart = (produto: Produto) => {
     setCartItems(prev => {
@@ -45,7 +53,7 @@ export default function VendasPage() {
 
   const handleSearchEnter = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchTerm) {
-      const result = mockProdutos.find(p => 
+      const result = mockProdutos.find(p =>
         p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.sku.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -57,7 +65,11 @@ export default function VendasPage() {
   };
 
   const subtotal = useMemo(() => cartItems.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0), [cartItems]);
-  const total = subtotal;
+
+  const total = useMemo(() => {
+    const calculatedTotal = subtotal - discount;
+    return calculatedTotal > 0 ? calculatedTotal : 0;
+  }, [subtotal, discount]);
 
   const handleFinalizeSale = (saleData: any) => {
     console.log("Salvando venda:", saleData);
@@ -76,6 +88,7 @@ export default function VendasPage() {
 
   const handleNewSale = () => {
     setCartItems([]);
+    setDiscount(0);
     setLastSaleData(null);
     setIsSuccessModalOpen(false);
   };
@@ -115,9 +128,30 @@ export default function VendasPage() {
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-lg font-semibold text-brand-dark mb-4">Resumo da Venda</h2>
               <div className="space-y-3">
-                <div className="flex justify-between text-sm text-gray-600"><span>Subtotal</span><span>R$ {subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between text-sm text-gray-600"><span>Descontos</span><span>R$ 0,00</span></div>
-                <div className="border-t border-gray-200 pt-4 mt-2"><div className="flex justify-between text-2xl font-bold text-brand-dark"><span>Total</span><span>R$ {total.toFixed(2)}</span></div></div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Subtotal</span>
+                  <span>R$ {subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <label htmlFor="discount" className="cursor-pointer">Descontos</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">R$</span>
+                    <input
+                      id="discount"
+                      type="number"
+                      value={discount === 0 ? '' : discount}
+                      onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                      placeholder="0,00"
+                      className="w-28 rounded-md border-gray-300 pl-8 pr-2 py-1 text-right focus:border-brand-green focus:ring-brand-green"
+                    />
+                  </div>
+                </div>
+                <div className="border-t border-gray-200 pt-4 mt-2">
+                  <div className="flex justify-between text-2xl font-bold text-brand-dark">
+                    <span>Total</span>
+                    <span>R$ {total.toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6 flex-1 flex flex-col justify-end">
