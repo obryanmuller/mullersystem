@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, KeyboardEvent, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import ModalFinalizarVenda from "@/components/ModalFinalizarVenda";
 import ModalVendaConcluida from "@/components/ModalVendaConcluida";
 
@@ -19,7 +19,7 @@ type Venda = {
 const mockProdutos: Produto[] = [
   { id: 1, nome: "Teclado Mecânico RGB", sku: "TEC-001", preco: 250.5, quantidade: 30 },
   { id: 2, nome: "Mouse Gamer 16000 DPI", sku: "MOU-002", preco: 180.0, quantidade: 50 },
-  { id: 3, nome: "Monitor Ultrawide 29\"", sku: "MON-003", preco: 1200.75, quantidade: 15 },
+  { id: 3, nome: 'Monitor Ultrawide 29"', sku: "MON-003", preco: 1200.75, quantidade: 15 },
   { id: 4, nome: "Headset 7.1 Surround", sku: "HEA-004", preco: 350.0, quantidade: 8 },
   { id: 5, nome: "Webcam Full HD 1080p", sku: "CAM-005", preco: 450.0, quantidade: 0 },
   { id: 6, nome: "SSD NVMe 1TB", sku: "SSD-006", preco: 650.0, quantidade: 22 },
@@ -33,7 +33,6 @@ export default function VendasPage() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [lastSaleData, setLastSaleData] = useState<Venda | null>(null);
 
-  // Sugestões (autocomplete)
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const addToCart = (produto: Produto) => {
@@ -77,7 +76,7 @@ export default function VendasPage() {
       .slice(0, 8);
   }, [searchTerm]);
 
-  const handleSearchEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleSearchEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       if (productSuggestions.length === 1) {
@@ -115,15 +114,12 @@ export default function VendasPage() {
   };
 
   const handleCancelSale = () => {
-    if (
-      cartItems.length > 0 &&
-      window.confirm("Tem certeza que deseja cancelar a venda atual?")
-    ) {
+    if (cartItems.length > 0 && window.confirm("Tem certeza que deseja cancelar a venda atual?")) {
       handleNewSale();
     }
   };
 
-  // Hotkeys F1 e F10
+  // 🔥 Hotkeys corrigidas (usando tipo nativo)
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "F1") {
@@ -136,6 +132,7 @@ export default function VendasPage() {
         if (!isPaymentModalOpen && !isSuccessModalOpen) handleCancelSale();
       }
     };
+
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [cartItems, isPaymentModalOpen, isSuccessModalOpen]);
@@ -146,7 +143,7 @@ export default function VendasPage() {
         <h1 className="text-3xl font-bold text-brand-dark mb-4">Frente de Caixa</h1>
 
         <div className="flex-1 grid grid-cols-12 gap-6 overflow-hidden">
-          {/* Tabela de Itens */}
+          {/* 🧾 Tabela de Itens */}
           <div className="col-span-12 lg:col-span-8 flex flex-col">
             <div className="flex-1 overflow-y-auto bg-white rounded-lg shadow-md">
               <table className="min-w-full">
@@ -194,10 +191,7 @@ export default function VendasPage() {
                     ))
                   ) : (
                     <tr>
-                      <td
-                        colSpan={4}
-                        className="text-center py-16 text-gray-400 text-sm italic"
-                      >
+                      <td colSpan={4} className="text-center py-16 text-gray-400 text-sm italic">
                         Aguardando produtos...
                       </td>
                     </tr>
@@ -207,7 +201,7 @@ export default function VendasPage() {
             </div>
           </div>
 
-          {/* Resumo da Venda */}
+          {/* 💰 Resumo da Venda */}
           <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-lg font-semibold text-brand-dark mb-4">Resumo da Venda</h2>
@@ -263,7 +257,7 @@ export default function VendasPage() {
           </div>
         </div>
 
-        {/* Input de busca com autocomplete */}
+        {/* 🔍 Input de busca com autocomplete */}
         <footer className="mt-6 relative">
           <div className="relative">
             <input
@@ -309,9 +303,7 @@ export default function VendasPage() {
                       <span>SKU: {product.sku}</span>
                       <span
                         className={
-                          product.quantidade <= 0
-                            ? "text-red-500 font-bold"
-                            : "text-green-600"
+                          product.quantidade <= 0 ? "text-red-500 font-bold" : "text-green-600"
                         }
                       >
                         Estoque: {product.quantidade}

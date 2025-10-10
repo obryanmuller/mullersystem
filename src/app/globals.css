@@ -30,4 +30,11 @@ body {
     top: 0;
     width: 100%;
   }
+  /* Opcional: Se estiver usando Next.js 13+ e o Body tiver classes de Tailwind */
+@layer base {
+  body {
+    @apply h-full; /* Garante que o body ocupe 100% da altura do html */
+  }
+}
+
 }
