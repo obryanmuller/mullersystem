@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import ModalFinalizarVenda from "@/components/ModalFinalizarVenda";
 import ModalVendaConcluida from "@/components/ModalVendaConcluida";
 
@@ -13,6 +13,14 @@ type Venda = {
   total: number;
   pagamento: string;
   cliente?: string;
+};
+
+// NOVO TIPO: Define o formato do objeto que é retornado por onFinalize
+type SaleFinalizationData = {
+    total: number;
+    paymentMethod: string;
+    // O cliente é opcional e pode ser null, mas se existir, deve ter o campo nome
+    client: { nome?: string | undefined } | null;
 };
 
 // Mock
@@ -94,7 +102,16 @@ export default function VendasPage() {
 
   const total = useMemo(() => Math.max(subtotal - discount, 0), [subtotal, discount]);
 
-  const handleFinalizeSale = (saleData: any) => {
+  // FIX: Usando useCallback para estabilizar a função
+  const handleNewSale = useCallback(() => {
+    setCartItems([]);
+    setDiscount(0);
+    setLastSaleData(null);
+    setIsSuccessModalOpen(false);
+  }, []); // Dependências vazias
+
+  // FIX: Usando SaleFinalizationData para tipagem
+  const handleFinalizeSale = (saleData: SaleFinalizationData) => {
     setLastSaleData({
       id: Math.floor(Math.random() * 10000),
       itens: cartItems,
@@ -106,20 +123,14 @@ export default function VendasPage() {
     setIsSuccessModalOpen(true);
   };
 
-  const handleNewSale = () => {
-    setCartItems([]);
-    setDiscount(0);
-    setLastSaleData(null);
-    setIsSuccessModalOpen(false);
-  };
-
-  const handleCancelSale = () => {
+  // FIX: Usando useCallback para estabilizar a função
+  const handleCancelSale = useCallback(() => {
     if (cartItems.length > 0 && window.confirm("Tem certeza que deseja cancelar a venda atual?")) {
       handleNewSale();
     }
-  };
+  }, [cartItems.length, handleNewSale]); // Depende do tamanho do carrinho e de handleNewSale
 
-  // 🔥 Hotkeys corrigidas (usando tipo nativo)
+  // 🔥 Hotkeys corrigidas (adicionando handleCancelSale nas dependências do useEffect)
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "F1") {
@@ -134,8 +145,9 @@ export default function VendasPage() {
     };
 
     window.addEventListener("keydown", handleKey);
+    // FIX: Adicionado handleCancelSale para evitar o warning do linter
     return () => window.removeEventListener("keydown", handleKey);
-  }, [cartItems, isPaymentModalOpen, isSuccessModalOpen]);
+  }, [cartItems, isPaymentModalOpen, isSuccessModalOpen, handleCancelSale]); 
 
   return (
     <>

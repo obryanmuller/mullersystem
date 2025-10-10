@@ -8,11 +8,20 @@ type Cliente = {
   id: number;
   nome: string;
 };
+
+// NOVO TIPO: Define o formato do objeto que é retornado por onFinalize
+type SaleFinalizationData = {
+  total: number;
+  paymentMethod: string;
+  client: Cliente | null;
+};
+
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   total: number;
-  onFinalize: (saleData: any) => void;
+  // FIX: Usando o tipo SaleFinalizationData
+  onFinalize: (saleData: SaleFinalizationData) => void;
 };
 
 // Dados de exemplo de clientes (poderiam vir de uma API no futuro)
@@ -20,7 +29,6 @@ const mockClientes: Cliente[] = [
   { id: 1, nome: 'João da Silva' },
   { id: 2, nome: 'Maria Oliveira' },
   { id: 3, nome: 'Cliente Final' },
-  // Adicionando mais clientes para testar a busca
   { id: 4, nome: 'Pedro Álvares' },
   { id: 5, nome: 'Ana Costa' },
   { id: 6, nome: 'Carlos Souza' },
@@ -31,9 +39,7 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   
-  // 💡 NOVO ESTADO: Termo de busca
   const [searchTerm, setSearchTerm] = useState('');
-  // 💡 NOVO ESTADO: Controla a visibilidade dos resultados da busca
   const [showResults, setShowResults] = useState(false); 
 
   if (!isOpen) return null;
@@ -43,24 +49,25 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
       alert('⚠️ Para pagamentos "A Prazo", é obrigatório selecionar um cliente.');
       return;
     }
+    
+    // FIX: Cria o objeto tipado antes de chamar a função
+    const saleData: SaleFinalizationData = {
+        total,
+        paymentMethod,
+        client: selectedClient,
+    };
 
-    onFinalize({
-      total,
-      paymentMethod,
-      client: selectedClient,
-    });
+    onFinalize(saleData);
   };
 
-  // 💡 LÓGICA DE FILTRAGEM
   const filteredClients = mockClientes.filter(cliente =>
     cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  // 💡 FUNÇÃO PARA SELECIONAR CLIENTE PELO RESULTADO DA BUSCA
   const handleSelectClient = (cliente: Cliente) => {
     setSelectedClient(cliente);
-    setSearchTerm(cliente.nome); // Preenche o input com o nome
-    setShowResults(false); // Esconde a lista
+    setSearchTerm(cliente.nome);
+    setShowResults(false);
   };
 
   const paymentMethods = ['Dinheiro', 'Cartão de Crédito', 'PIX', 'A Prazo'];
@@ -98,7 +105,7 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
             </div>
           </div>
 
-          <div className="mb-8 z-10"> {/* Adicionado z-10 para a lista ficar sobre outros elementos */}
+          <div className="mb-8 z-10">
               <h3 className="text-lg font-semibold mb-3 text-gray-800">
                   Associar Cliente 
                   {isClientRequired && <span className="text-red-500 font-bold"> (Obrigatório)</span>}
@@ -113,17 +120,17 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
                       value={searchTerm}
                       onChange={(e) => {
                           setSearchTerm(e.target.value);
-                          setShowResults(true); // Sempre mostra resultados ao digitar
-                          setSelectedClient(null); // Limpa seleção ao digitar
+                          setShowResults(true);
+                          setSelectedClient(null);
                       }}
                       onFocus={() => setShowResults(true)}
-                      onBlur={() => setTimeout(() => setShowResults(false), 200)} // Pequeno delay para permitir o clique
+                      onBlur={() => setTimeout(() => setShowResults(false), 200)}
                       className={`w-full rounded-md shadow-sm pr-10 transition-all 
                         focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-brand-green 
                         border-gray-300 bg-white p-2.5
                         ${
                             isClientRequired && selectedClient === null 
-                                ? 'border-red-500 ring-1 ring-red-500' // Estilo de erro
+                                ? 'border-red-500 ring-1 ring-red-500'
                                 : ''
                         }`}
                     />

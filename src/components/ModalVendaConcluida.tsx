@@ -2,10 +2,21 @@
 
 import CupomNaoFiscal from './CupomNaoFiscal';
 
+// Tipos necessários para este componente
+type CartItem = { produto: { nome: string; preco: number; }; quantidade: number; };
+type Venda = {
+  id: number;
+  itens: CartItem[];
+  total: number;
+  pagamento: string;
+  cliente?: string;
+};
+
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  venda: any;
+  // FIX: Usando o tipo Venda
+  venda: Venda;
 };
 
 export default function ModalVendaConcluida({ isOpen, onClose, venda }: ModalProps) {
