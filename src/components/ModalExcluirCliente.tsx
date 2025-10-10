@@ -1,35 +1,39 @@
 "use client";
 
-type Cliente = { id: number; nome: string; };
+// Tipos (simples, apenas para referência)
+type Cliente = { id: number; nome: string; }; 
 type ModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  cliente: Cliente | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  cliente: Cliente | null;
 };
 
 export default function ModalExcluirCliente({ isOpen, onClose, onConfirm, cliente }: ModalProps) {
-  if (!isOpen || !cliente) return null;
+  if (!isOpen || !cliente) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md text-center">
-        <svg className="mx-auto h-16 w-16 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-        </svg>
-        <h2 className="text-2xl font-bold mt-4 text-brand-dark">Confirmar Exclusão</h2>
-        <p className="text-gray-600 mt-2">
-          Tem certeza que deseja excluir o cliente <span className="font-bold">{cliente.nome}</span>? Esta ação não pode ser desfeita.
-        </p>
-        <div className="mt-8 flex justify-center gap-4">
-          <button onClick={onClose} className="px-8 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300">
-            Cancelar
-          </button>
-          <button onClick={onConfirm} className="px-8 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">
-            Excluir
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm">
+        <h2 className="text-xl font-bold mb-4 text-red-600 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.398 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Confirmação de Exclusão
+        </h2>
+
+        <p className="mb-6 text-gray-700">Tem certeza que deseja **excluir permanentemente** o cliente:</p>
+        <p className="mb-8 p-3 bg-red-50 text-red-800 font-semibold rounded-md">{cliente.nome} (ID: {cliente.id})</p>
+
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="px-5 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300">
+            Cancelar
+          </button>
+          <button onClick={onConfirm} className="px-5 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
