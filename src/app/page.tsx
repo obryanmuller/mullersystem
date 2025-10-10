@@ -1,60 +1,18 @@
-"use client";
-
-import { useState } from 'react';
-import ModalAdicionarProduto from '@/components/ModalAdicionarProduto';
-
-// Renomeado para não conflitar com a rota /produtos que vamos criar
-export default function HomePage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Dados de exemplo
-  const mockProdutos = [
-    { id: 1, nome: 'Teclado Mecânico RGB', sku: 'TEC-001', preco: 250.50, quantidade: 30 },
-    { id: 2, nome: 'Mouse Gamer 16000 DPI', sku: 'MOU-002', preco: 180.00, quantidade: 50 },
-    { id: 3, nome: 'Monitor Ultrawide 29"', sku: 'MON-003', preco: 1200.75, quantidade: 15 },
-    { id: 4, nome: 'Headset 7.1 Surround', sku: 'HEA-004', preco: 350.00, quantidade: 25 },
-  ];
-
+export default function DashboardPage() {
   return (
     <div className="w-full max-w-7xl mx-auto">
-      <header className="flex justify-between items-center mb-8">
+      <header className="mb-8">
         <h1 className="text-3xl font-bold text-brand-dark">
-          Gestão de Estoque
+          Dashboard
         </h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-brand-green hover:opacity-90 text-white font-bold py-2 px-4 rounded-lg shadow transition-transform transform hover:scale-105"
-        >
-          Adicionar Produto
-        </button>
+        <p className="text-gray-500 mt-2">Bem-vindo ao seu painel de controle!</p>
       </header>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-4 font-semibold text-gray-600">Nome do Produto</th>
-              <th className="p-4 font-semibold text-gray-600">SKU</th>
-              <th className="p-4 font-semibold text-gray-600">Preço (R$)</th>
-              <th className="p-4 font-semibold text-gray-600">Qtd. em Estoque</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mockProdutos.map((produto) => (
-              <tr key={produto.id} className="border-t border-gray-200 hover:bg-gray-50">
-                <td className="p-4 text-gray-800">{produto.nome}</td>
-                <td className="p-4 text-gray-500">{produto.sku}</td>
-                <td className="p-4 text-gray-800">{produto.preco.toFixed(2).replace('.', ',')}</td>
-                <td className="p-4 text-gray-800">{produto.quantidade}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Futuramente, aqui podemos adicionar cards, gráficos, etc. */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold text-gray-700">Visão Geral</h2>
+        <p className="mt-4">Em breve, você verá as principais métricas do seu negócio aqui.</p>
       </div>
-      <ModalAdicionarProduto
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </div>
   );
 }
