@@ -4,12 +4,35 @@ type Produto = { id: number; nome: string; };
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
   produto: Produto | null;
+  onProductDeleted: () => void;
 };
 
-export default function ModalExcluirProduto({ isOpen, onClose, onConfirm, produto }: ModalProps) {
+export default function ModalExcluirProduto({ isOpen, onClose, produto, onProductDeleted }: ModalProps) {
   if (!isOpen || !produto) return null;
+
+  const handleConfirm = async () => {
+    try {
+      const response = await fetch(`/api/produtos/${produto.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.status !== 204) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Falha ao excluir o produto');
+      }
+      
+      onProductDeleted();
+      onClose();
+    } catch (error: unknown) {
+        let errorMessage = 'Ocorreu um erro desconhecido.';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.error("Detalhes do erro:", error);
+        alert(`Erro ao excluir o produto: ${errorMessage}`);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
@@ -25,7 +48,7 @@ export default function ModalExcluirProduto({ isOpen, onClose, onConfirm, produt
           <button onClick={onClose} className="px-8 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300">
             Cancelar
           </button>
-          <button onClick={onConfirm} className="px-8 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">
+          <button onClick={handleConfirm} className="px-8 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">
             Excluir
           </button>
         </div>

@@ -3,12 +3,13 @@
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  onClientAdded: () => void;
 };
 
-export default function ModalAdicionarCliente({ isOpen, onClose }: ModalProps) {
+export default function ModalAdicionarCliente({ isOpen, onClose, onClientAdded }: ModalProps) {
   if (!isOpen) return null;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
@@ -28,9 +29,30 @@ export default function ModalAdicionarCliente({ isOpen, onClose }: ModalProps) {
       },
     };
 
-    console.log("Novo cliente com Endereço e CPF:", clienteData);
-    alert("Cliente salvo no console!");
-    onClose();
+    try {
+        const response = await fetch('/api/clientes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(clienteData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Falha ao cadastrar cliente');
+        }
+
+        if (onClientAdded) {
+            onClientAdded();
+        }
+        onClose();
+    } catch (error: unknown) {
+        let errorMessage = 'Ocorreu um erro desconhecido.';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.error("Detalhes do erro:", error);
+        alert(`Erro ao salvar cliente: ${errorMessage}`);
+    }
   };
 
   return (

@@ -2,25 +2,37 @@
 
 import CupomNaoFiscal from './CupomNaoFiscal';
 
-// Tipos necessários para este componente
-type CartItem = { produto: { nome: string; preco: number; }; quantidade: number; };
+// --- Tipos ---
+type CartItem = { 
+    produto: { nome: string; preco: number; }; 
+    quantidade: number; 
+};
+
+// CORREÇÃO: O tipo 'cliente' agora espera o objeto completo, assim como no CupomNaoFiscal
+type ClienteCompleto = {
+    nome: string;
+    cpf: string;
+    enderecoRua: string;
+    enderecoBairro: string;
+    enderecoCidade: string;
+    enderecoEstado: string;
+};
+
 type Venda = {
   id: number;
   itens: CartItem[];
   total: number;
   pagamento: string;
-  cliente?: string;
+  cliente?: ClienteCompleto; // Usando o tipo completo e correto
 };
 
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  // FIX: Usando o tipo Venda
   venda: Venda;
 };
 
 export default function ModalVendaConcluida({ isOpen, onClose, venda }: ModalProps) {
-
   if (!isOpen) return null;
 
   return (
@@ -34,15 +46,12 @@ export default function ModalVendaConcluida({ isOpen, onClose, venda }: ModalPro
           <h2 className="text-2xl font-bold mt-4 text-brand-dark">Venda Concluída!</h2>
           <p className="text-gray-600 mt-2">A venda foi registrada com sucesso.</p>
           <div className="mt-8 flex flex-col gap-3">
-            
-            {/* ESTE BOTÃO AGORA CHAMA window.print() */}
             <button
               onClick={() => window.print()}
               className="px-8 py-3 bg-brand-green text-white font-bold rounded-lg hover:opacity-90 w-full"
             >
               Imprimir Comprovante
             </button>
-            
             <button
               onClick={onClose}
               className="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300"

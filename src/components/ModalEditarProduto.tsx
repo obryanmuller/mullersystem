@@ -6,19 +6,19 @@ type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   produto: Produto | null;
+  onProductUpdated: () => void;
 };
 
-export default function ModalEditarProduto({ isOpen, onClose, produto }: ModalProps) {
-  const [formData, setFormData] = useState({ nome: '', sku: '', preco: 0, quantidade: 0 });
+export default function ModalEditarProduto({ isOpen, onClose, produto, onProductUpdated }: ModalProps) {
+  const [formData, setFormData] = useState({ nome: '', sku: '', preco: '0', quantidade: '0' });
 
-  // Preenche o formulário quando um produto é passado para o modal
   useEffect(() => {
     if (produto) {
       setFormData({
         nome: produto.nome,
         sku: produto.sku,
-        preco: produto.preco,
-        quantidade: produto.quantidade,
+        preco: String(produto.preco),
+        quantidade: String(produto.quantidade),
       });
     }
   }, [produto]);
@@ -30,11 +30,34 @@ export default function ModalEditarProduto({ isOpen, onClose, produto }: ModalPr
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Salvando alterações:", { id: produto.id, ...formData });
-    alert('Alterações salvas no console!');
-    onClose();
+    try {
+      const response = await fetch(`/api/produtos/${produto.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ...formData,
+            preco: parseFloat(formData.preco),
+            quantidade: parseInt(formData.quantidade, 10)
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Falha ao atualizar o produto');
+      }
+
+      onProductUpdated();
+      onClose();
+    } catch (error: unknown) {
+        let errorMessage = 'Ocorreu um erro desconhecido.';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.error("Detalhes do erro:", error);
+        alert(`Erro ao atualizar o produto: ${errorMessage}`);
+    }
   };
 
   return (
