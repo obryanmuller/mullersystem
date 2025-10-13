@@ -1,14 +1,17 @@
 "use client";
 
+// CORREÇÃO: Adicionamos 'onClientAdded' à definição de tipos.
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  onClientAdded: () => void; // Esta linha é a correção principal
 };
 
-export default function ModalAdicionarCliente({ isOpen, onClose }: ModalProps) {
+// CORREÇÃO: Recebemos 'onClientAdded' como uma propriedade.
+export default function ModalAdicionarCliente({ isOpen, onClose, onClientAdded }: ModalProps) {
   if (!isOpen) return null;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
@@ -28,9 +31,29 @@ export default function ModalAdicionarCliente({ isOpen, onClose }: ModalProps) {
       },
     };
 
-    console.log("Novo cliente com Endereço e CPF:", clienteData);
-    alert("Cliente salvo no console!");
-    onClose();
+    try {
+        const response = await fetch('/api/clientes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(clienteData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Falha ao cadastrar cliente');
+        }
+
+        // Agora a função onClientAdded existe e será chamada corretamente.
+        if (onClientAdded) {
+            onClientAdded();
+        }
+        onClose();
+    } catch (error: any) {
+        console.error(error);
+        alert(`Erro ao salvar cliente: ${error.message}`);
+    }
   };
 
   return (
