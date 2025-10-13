@@ -84,13 +84,6 @@ export default function LoginPage() {
               </Link>
             </div>
           </form>
-
-          <p className="mt-8 text-center text-sm text-gray-600">
-            Não tem uma conta?{' '}
-            <Link href="#" className="font-medium text-brand-green hover:text-green-700">
-              Cadastre-se
-            </Link>
-          </p>
         </div>
       </div>
     </div>
