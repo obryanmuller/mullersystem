@@ -10,7 +10,7 @@ export async function GET() {
       orderBy: { nome: 'asc' },
     });
     return NextResponse.json(produtos);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Erro ao buscar produtos' }, { status: 500 });
   }
 }
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json(novoProduto, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Erro ao criar produto' }, { status: 500 });
   }
 }
