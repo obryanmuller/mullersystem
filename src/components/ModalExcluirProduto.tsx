@@ -5,7 +5,7 @@ type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   produto: Produto | null;
-  onProductDeleted: () => void; // Função para notificar a página principal
+  onProductDeleted: () => void;
 };
 
 export default function ModalExcluirProduto({ isOpen, onClose, produto, onProductDeleted }: ModalProps) {
@@ -22,18 +22,21 @@ export default function ModalExcluirProduto({ isOpen, onClose, produto, onProduc
         throw new Error(errorData.error || 'Falha ao excluir o produto');
       }
       
-      onProductDeleted(); // Notifica a página principal
-      onClose();          // Fecha este modal
-    } catch (error: any) {
-      console.error(error);
-      alert(`Erro ao excluir o produto: ${error.message}`);
+      onProductDeleted();
+      onClose();
+    } catch (error: unknown) {
+        let errorMessage = 'Ocorreu um erro desconhecido.';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.error("Detalhes do erro:", error);
+        alert(`Erro ao excluir o produto: ${errorMessage}`);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md text-center">
-        {/* O JSX do seu modal continua o mesmo */}
         <svg className="mx-auto h-16 w-16 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
         </svg>

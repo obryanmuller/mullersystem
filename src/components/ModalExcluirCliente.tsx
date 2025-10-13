@@ -24,9 +24,13 @@ export default function ModalExcluirCliente({ isOpen, onClose, cliente, onClient
 
         onClientDeleted();
         onClose();
-    } catch (error: any) {
-        console.error(error);
-        alert(`Erro ao excluir cliente: ${error.message}`);
+    } catch (error: unknown) {
+        let errorMessage = 'Ocorreu um erro desconhecido.';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.error("Detalhes do erro:", error);
+        alert(`Erro ao excluir cliente: ${errorMessage}`);
     }
   };
 

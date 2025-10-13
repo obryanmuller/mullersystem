@@ -1,13 +1,11 @@
 "use client";
 
-// CORREÇÃO: Adicionamos 'onClientAdded' à definição de tipos.
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onClientAdded: () => void; // Esta linha é a correção principal
+  onClientAdded: () => void;
 };
 
-// CORREÇÃO: Recebemos 'onClientAdded' como uma propriedade.
 export default function ModalAdicionarCliente({ isOpen, onClose, onClientAdded }: ModalProps) {
   if (!isOpen) return null;
 
@@ -34,9 +32,7 @@ export default function ModalAdicionarCliente({ isOpen, onClose, onClientAdded }
     try {
         const response = await fetch('/api/clientes', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(clienteData)
         });
 
@@ -45,14 +41,17 @@ export default function ModalAdicionarCliente({ isOpen, onClose, onClientAdded }
             throw new Error(errorData.error || 'Falha ao cadastrar cliente');
         }
 
-        // Agora a função onClientAdded existe e será chamada corretamente.
         if (onClientAdded) {
             onClientAdded();
         }
         onClose();
-    } catch (error: any) {
-        console.error(error);
-        alert(`Erro ao salvar cliente: ${error.message}`);
+    } catch (error: unknown) {
+        let errorMessage = 'Ocorreu um erro desconhecido.';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.error("Detalhes do erro:", error);
+        alert(`Erro ao salvar cliente: ${errorMessage}`);
     }
   };
 

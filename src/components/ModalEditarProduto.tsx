@@ -6,7 +6,7 @@ type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   produto: Produto | null;
-  onProductUpdated: () => void; // Função para notificar a página principal
+  onProductUpdated: () => void;
 };
 
 export default function ModalEditarProduto({ isOpen, onClose, produto, onProductUpdated }: ModalProps) {
@@ -35,9 +35,7 @@ export default function ModalEditarProduto({ isOpen, onClose, produto, onProduct
     try {
       const response = await fetch(`/api/produtos/${produto.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             ...formData,
             preco: parseFloat(formData.preco),
@@ -50,11 +48,15 @@ export default function ModalEditarProduto({ isOpen, onClose, produto, onProduct
         throw new Error(errorData.error || 'Falha ao atualizar o produto');
       }
 
-      onProductUpdated(); // Notifica a página principal
-      onClose();          // Fecha este modal
-    } catch (error: any) {
-      console.error(error);
-      alert(`Erro ao atualizar o produto: ${error.message}`);
+      onProductUpdated();
+      onClose();
+    } catch (error: unknown) {
+        let errorMessage = 'Ocorreu um erro desconhecido.';
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.error("Detalhes do erro:", error);
+        alert(`Erro ao atualizar o produto: ${errorMessage}`);
     }
   };
 
@@ -63,7 +65,6 @@ export default function ModalEditarProduto({ isOpen, onClose, produto, onProduct
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg">
         <h2 className="text-2xl font-bold mb-6 text-brand-dark">Editar Produto: {produto.nome}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-            {/* O JSX do seu formulário continua o mesmo */}
             <div><label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome do Produto</label><input type="text" id="nome" name="nome" value={formData.nome} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div><label htmlFor="sku" className="block text-sm font-medium text-gray-700">SKU</label><input type="text" id="sku" name="sku" value={formData.sku} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
