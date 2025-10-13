@@ -1,11 +1,15 @@
+// Declara o provedor do cliente Prisma
 generator client {
   provider = "prisma-client-js"
 }
 
+// Configura a fonte de dados, apontando para a URL no seu arquivo .env
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL") // O Prisma vai ler a variável do seu arquivo .env
+  url       = env("DATABASE_URL")
 }
+
+// --- MODELOS EXISTENTES ATUALIZADOS ---
 
 model Produto {
   id          Int      @id @default(autoincrement())
@@ -15,6 +19,9 @@ model Produto {
   quantidade  Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // RELACIONAMENTO: Um produto pode estar em muitos itens de venda
+  itensVenda  ItemVenda[]
 }
 
 model Cliente {
@@ -32,4 +39,38 @@ model Cliente {
   enderecoRef   String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  // RELACIONAMENTO: Um cliente pode ter muitas vendas
+  vendas        Venda[]
+}
+
+
+// --- NOVOS MODELOS PARA A FUNCIONALIDADE DE VENDAS ---
+
+model Venda {
+  id          Int      @id @default(autoincrement())
+  total       Decimal  @db.Decimal(10, 2)
+  pagamento   String
+  createdAt   DateTime @default(now())
+
+  // RELACIONAMENTO: A venda pode pertencer a um cliente (opcional)
+  clienteId   Int?
+  cliente     Cliente? @relation(fields: [clienteId], references: [id])
+
+  // RELACIONAMENTO: Uma venda é composta por vários itens
+  itens       ItemVenda[]
+}
+
+model ItemVenda {
+  id         Int   @id @default(autoincrement())
+  quantidade Int
+  preco      Decimal @db.Decimal(10, 2) // Preço do produto no momento da venda
+
+  // RELACIONAMENTO: A qual venda este item pertence
+  vendaId    Int
+  venda      Venda @relation(fields: [vendaId], references: [id])
+
+  // RELACIONAMENTO: Qual produto foi vendido
+  produtoId  Int
+  produto    Produto @relation(fields: [produtoId], references: [id])
 }
