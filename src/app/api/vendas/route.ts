@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { PrismaClient, Prisma } from '@prisma/client';
-import { decrypt } from '@/lib/crypto'; // Importe a função de descriptografia
+import { PrismaClient } from '@prisma/client';
+import { decrypt } from '@/lib/crypto';
 
 const prisma = new PrismaClient();
 
@@ -25,12 +25,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Dados da venda incompletos.' }, { status: 400 });
     }
 
-    const vendaRegistrada = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const vendaRegistrada = await prisma.$transaction(async (tx) => {
       const venda = await tx.venda.create({
         data: {
-          total: total,
-          pagamento: pagamento,
-          clienteId: clienteId,
+          total,
+          pagamento,
+          clienteId,
         },
       });
 
@@ -43,74 +43,63 @@ export async function POST(request: NextRequest) {
             preco: item.preco,
           },
         });
+
         await tx.produto.update({
           where: { id: item.produtoId },
           data: {
-            quantidade: {
-              decrement: item.quantidade,
-            },
+            quantidade: { decrement: item.quantidade },
           },
         });
       }
 
-       if (clienteId) {
+      if (clienteId) {
         await tx.cliente.update({
           where: { id: clienteId },
           data: {
-            totalCompras: {
-              increment: total,
-            }
-          }
+            totalCompras: { increment: total },
+          },
         });
       }
 
       return tx.venda.findUnique({
         where: { id: venda.id },
         include: {
-            itens: {
-                include: {
-                    produto: true
-                }
-            },
-            cliente: true
+          itens: { include: { produto: true } },
+          cliente: true,
         },
       });
     });
 
-    // Se houver um cliente na venda, descriptografe o CPF dele
+    // Descriptografa o CPF do cliente, se existir
     let clienteFinal = null;
     if (vendaRegistrada?.cliente) {
-        clienteFinal = {
-            ...vendaRegistrada.cliente,
-            totalCompras: Number(vendaRegistrada.cliente.totalCompras),
-            cpf: decrypt(vendaRegistrada.cliente.cpf) // Descriptografando aqui!
-        };
+      clienteFinal = {
+        ...vendaRegistrada.cliente,
+        totalCompras: Number(vendaRegistrada.cliente.totalCompras),
+        cpf: decrypt(vendaRegistrada.cliente.cpf),
+      };
     }
 
     const serializableVenda = {
-        ...vendaRegistrada,
-        total: Number(vendaRegistrada?.total),
-        cliente: clienteFinal, // Adiciona o cliente com CPF descriptografado
-        itens: vendaRegistrada?.itens.map(item => {
-            const typedItem = item as typeof item & { produto: { preco: Prisma.Decimal }};
-            return {
-                ...item,
-                preco: Number(item.preco),
-                produto: {
-                    ...item.produto,
-                    preco: Number(typedItem.produto.preco)
-                }
-            }
-        })
+      ...vendaRegistrada,
+      total: Number(vendaRegistrada?.total),
+      cliente: clienteFinal,
+      itens: vendaRegistrada?.itens.map((item) => ({
+        ...item,
+        preco: Number(item.preco),
+        produto: {
+          ...item.produto,
+          preco: Number(item.produto.preco),
+        },
+      })),
     };
 
     return NextResponse.json(serializableVenda, { status: 201 });
-
   } catch (error: unknown) {
-    console.error("Erro ao registrar venda:", error);
+    console.error('Erro ao registrar venda:', error);
     let errorMessage = 'Não foi possível registrar a venda.';
     if (error instanceof Error) {
-        errorMessage = error.message;
+      errorMessage = error.message;
     }
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
