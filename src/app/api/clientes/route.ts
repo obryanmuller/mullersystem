@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient, Prisma } from '@prisma/client'; // Importe o tipo 'Prisma'
+import { PrismaClient, Prisma } from '@prisma/client';
 import { encrypt } from '@/lib/crypto';
 
 const prisma = new PrismaClient();
@@ -11,7 +11,6 @@ export async function GET() {
         nome: 'asc',
       },
     });
-    // Converte o Decimal para número antes de enviar a resposta
     const serializableClientes = clientes.map(c => ({
         ...c,
         totalCompras: Number(c.totalCompras)
@@ -53,13 +52,12 @@ export async function POST(request: Request) {
         };
         return NextResponse.json(serializableCliente, { status: 201 });
 
-    } catch (error: unknown) { // CORRIGIDO: de 'any' para 'unknown'
+    } catch (error: unknown) { // CORRIGIDO
         console.error("Erro ao criar cliente:", error);
         
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2002') {
-                 // CORRIGIDO: Adicionamos um type guard para 'target'
-                 const target = (error.meta?.target as string[]) || [];
+                 const target = (error.meta?.target as string[]) || []; // CORRIGIDO
                  if (target.includes('email')) {
                     return NextResponse.json({ error: 'Este email já está cadastrado.' }, { status: 409 });
                  }

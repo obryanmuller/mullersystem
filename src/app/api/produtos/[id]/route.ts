@@ -16,7 +16,7 @@ export async function GET() {
     }));
     return NextResponse.json(serializableProdutos);
   } catch (error) {
-    console.error("Erro ao buscar produtos:", error); // CORRIGIDO: Usando a variável 'error'
+    console.error("Erro ao buscar produtos:", error); // CORRIGIDO
     return NextResponse.json({ error: 'Erro ao buscar produtos' }, { status: 500 });
   }
 }
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     };
     return NextResponse.json(serializableProduto, { status: 201 });
   } catch (error) {
-    console.error("Erro ao criar produto:", error); // CORRIGIDO: Usando a variável 'error'
+    console.error("Erro ao criar produto:", error); // CORRIGIDO
     return NextResponse.json({ error: 'Erro ao criar produto' }, { status: 500 });
   }
 }
