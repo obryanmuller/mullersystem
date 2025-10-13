@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server'; // 1. Importe o NextRequest
 import { PrismaClient } from '@prisma/client';
 import { encrypt, decrypt } from '@/lib/crypto';
 
@@ -7,9 +7,10 @@ const prisma = new PrismaClient();
 /**
  * GET: Rota para buscar um cliente específico.
  */
-export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+// 2. CORRIJA A ASSINATURA DA FUNÇÃO
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
     try {
-        const { id } = await context.params;
+        const { id } = params;
 
         if (isNaN(parseInt(id, 10))) {
             return NextResponse.json({ error: 'ID de cliente inválido' }, { status: 400 });
@@ -41,9 +42,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 /**
  * PUT: Rota para atualizar um cliente existente.
  */
-export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+// 2. CORRIJA A ASSINATURA DA FUNÇÃO
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
     const data = await request.json();
 
     const cpfCriptografado = data.cpf ? encrypt(data.cpf) : undefined;
@@ -79,9 +81,10 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 /**
  * DELETE: Rota para excluir um cliente.
  */
-export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+// 2. CORRIJA A ASSINATURA DA FUNÇÃO
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
 
     await prisma.cliente.delete({
       where: {

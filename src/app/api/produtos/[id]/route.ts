@@ -10,7 +10,6 @@ export async function GET() {
         nome: 'asc',
       },
     });
-    // Converte o Decimal para número antes de enviar a resposta
     const serializableProdutos = produtos.map(p => ({
         ...p,
         preco: Number(p.preco)
