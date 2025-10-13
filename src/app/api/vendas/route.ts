@@ -4,22 +4,9 @@ import { decrypt } from '@/lib/crypto';
 
 const prisma = new PrismaClient();
 
-interface ItemVendaPayload {
-  produtoId: number;
-  quantidade: number;
-  preco: number;
-}
-
-interface VendaPayload {
-  total: number;
-  pagamento: string;
-  clienteId?: number;
-  itens: ItemVendaPayload[];
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const { total, pagamento, clienteId, itens }: VendaPayload = await request.json();
+    const { total, pagamento, clienteId, itens } = await request.json();
 
     if (!total || !pagamento || !itens || itens.length === 0) {
       return NextResponse.json({ error: 'Dados da venda incompletos.' }, { status: 400 });
@@ -47,7 +34,9 @@ export async function POST(request: NextRequest) {
         await tx.produto.update({
           where: { id: item.produtoId },
           data: {
-            quantidade: { decrement: item.quantidade },
+            quantidade: {
+              decrement: item.quantidade,
+            },
           },
         });
       }
@@ -56,7 +45,9 @@ export async function POST(request: NextRequest) {
         await tx.cliente.update({
           where: { id: clienteId },
           data: {
-            totalCompras: { increment: total },
+            totalCompras: {
+              increment: total,
+            },
           },
         });
       }
@@ -70,7 +61,6 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    // Descriptografa o CPF do cliente, se existir
     let clienteFinal = null;
     if (vendaRegistrada?.cliente) {
       clienteFinal = {
@@ -87,20 +77,14 @@ export async function POST(request: NextRequest) {
       itens: vendaRegistrada?.itens.map((item) => ({
         ...item,
         preco: Number(item.preco),
-        produto: {
-          ...item.produto,
-          preco: Number(item.produto.preco),
-        },
+        produto: { ...item.produto, preco: Number(item.produto.preco) },
       })),
     };
 
     return NextResponse.json(serializableVenda, { status: 201 });
   } catch (error: unknown) {
     console.error('Erro ao registrar venda:', error);
-    let errorMessage = 'Não foi possível registrar a venda.';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Erro desconhecido';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
