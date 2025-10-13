@@ -9,7 +9,6 @@ type Cliente = {
   nome: string;
 };
 
-// NOVO TIPO: Define o formato do objeto que é retornado por onFinalize
 type SaleFinalizationData = {
   total: number;
   paymentMethod: string;
@@ -20,11 +19,9 @@ type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   total: number;
-  // FIX: Usando o tipo SaleFinalizationData
   onFinalize: (saleData: SaleFinalizationData) => void;
 };
 
-// Dados de exemplo de clientes (poderiam vir de uma API no futuro)
 const mockClientes: Cliente[] = [
   { id: 1, nome: 'João da Silva' },
   { id: 2, nome: 'Maria Oliveira' },
@@ -50,7 +47,6 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
       return;
     }
     
-    // FIX: Cria o objeto tipado antes de chamar a função
     const saleData: SaleFinalizationData = {
         total,
         paymentMethod,
@@ -75,12 +71,10 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
 
   return (
     <>
-      {/* 1. Modal Principal de Finalizar Venda */}
       <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
         <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg">
           <h2 className="text-2xl font-bold mb-6 text-brand-dark">Finalizar Venda</h2>
 
-          {/* ... Conteúdo do Total e Formas de Pagamento ... */}
           <div className="mb-6 bg-brand-light p-4 rounded-md text-center">
             <p className="text-sm text-gray-600">Total a Pagar</p>
             <p className="text-4xl font-bold text-brand-green">R$ {total.toFixed(2)}</p>
@@ -113,7 +107,6 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
               </h3>
               <div className="flex gap-2">
                 <div className="relative w-full">
-                    {/* 💡 CAMPO DE BUSCA */}
                     <input 
                       type="text"
                       placeholder="Pesquisar ou Selecionar Cliente..."
@@ -135,7 +128,6 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
                         }`}
                     />
                     
-                    {/* 💡 LISTA DE RESULTADOS (COMBOBOX) */}
                     {showResults && searchTerm.length > 0 && (
                         <ul className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto z-20">
                             {filteredClients.length > 0 ? (
@@ -164,7 +156,6 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
                 </button>
               </div>
               
-              {/* Exibe o cliente selecionado, útil para verificar */}
               {selectedClient && (
                   <p className="mt-2 text-sm text-brand-green font-semibold">
                       Cliente Selecionado: {selectedClient.nome}
@@ -186,10 +177,14 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
         </div>
       </div>
 
-      {/* 2. Modal de Adicionar Cliente (Renderizado condicionalmente) */}
       <ModalAdicionarCliente
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
+        onClientAdded={() => {
+            // Função vazia para satisfazer a prop.
+            // Poderíamos adicionar uma lógica aqui para buscar o novo cliente e selecioná-lo.
+            console.log("Cliente adicionado a partir do modal de vendas.");
+        }}
       />
     </>
   );

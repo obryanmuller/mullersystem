@@ -3,23 +3,28 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Interface para os parâmetros da URL (para garantir a tipagem do 'id')
-interface Params {
-  id: string;
+export async function GET() {
+  try {
+    const produtos = await prisma.produto.findMany({
+      orderBy: {
+        nome: 'asc',
+      },
+    });
+    const serializableProdutos = produtos.map(p => ({
+        ...p,
+        preco: Number(p.preco)
+    }));
+    return NextResponse.json(serializableProdutos);
+  } catch (error) {
+    console.error("Erro ao buscar produtos:", error); // CORRIGIDO: Usando a variável 'error'
+    return NextResponse.json({ error: 'Erro ao buscar produtos' }, { status: 500 });
+  }
 }
 
-/**
- * PUT: Rota para atualizar um produto existente.
- */
-export async function PUT(request: Request, context: { params: Params }) {
+export async function POST(request: Request) {
   try {
-    const { id } = context.params;
     const data = await request.json();
-
-    const updatedProduto = await prisma.produto.update({
-      where: {
-        id: parseInt(id, 10), // Converte o ID da URL para número
-      },
+    const novoProduto = await prisma.produto.create({
       data: {
         nome: data.nome,
         sku: data.sku,
@@ -27,31 +32,13 @@ export async function PUT(request: Request, context: { params: Params }) {
         quantidade: parseInt(data.quantidade, 10),
       },
     });
-
-    return NextResponse.json(updatedProduto);
+    const serializableProduto = {
+        ...novoProduto,
+        preco: Number(novoProduto.preco)
+    };
+    return NextResponse.json(serializableProduto, { status: 201 });
   } catch (error) {
-    console.error("Erro ao atualizar produto:", error);
-    return NextResponse.json({ error: 'Erro ao atualizar produto' }, { status: 500 });
-  }
-}
-
-/**
- * DELETE: Rota para excluir um produto.
- */
-export async function DELETE(request: Request, context: { params: Params }) {
-  try {
-    const { id } = context.params;
-
-    await prisma.produto.delete({
-      where: {
-        id: parseInt(id, 10), // Converte o ID da URL para número
-      },
-    });
-
-    // Retorna uma resposta vazia com status 204 (No Content) para indicar sucesso
-    return new NextResponse(null, { status: 204 }); 
-  } catch (error) {
-    console.error("Erro ao excluir produto:", error);
-    return NextResponse.json({ error: 'Erro ao excluir produto' }, { status: 500 });
+    console.error("Erro ao criar produto:", error); // CORRIGIDO: Usando a variável 'error'
+    return NextResponse.json({ error: 'Erro ao criar produto' }, { status: 500 });
   }
 }

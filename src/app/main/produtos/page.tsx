@@ -4,9 +4,14 @@ import { useState, useMemo, useEffect } from 'react';
 import ModalAdicionarProduto from '@/components/ModalAdicionarProduto';
 import ModalEditarProduto from '@/components/ModalEditarProduto';
 import ModalExcluirProduto from '@/components/ModalExcluirProduto';
-import ModalSucesso from '@/components/ModalSucesso'; // Importamos o modal de sucesso
+import ModalSucesso from '@/components/ModalSucesso';
 
+// Tipos
 type Produto = { id: number; nome: string; sku: string; preco: number; quantidade: number; };
+
+// Tipo para dados brutos da API (onde Decimal é string)
+type ProdutoFromAPI = Omit<Produto, 'preco'> & { preco: string };
+
 
 const ActionIcon = ({ path, className = '' }: { path: string, className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -35,11 +40,10 @@ export default function ProdutosPage() {
 
   const fetchProdutos = async () => {
     try {
-      // Não precisa setar loading aqui, o useEffect principal já faz isso
       const response = await fetch('/api/produtos');
       if (!response.ok) throw new Error('Erro ao buscar dados da API');
-      const data = await response.json();
-      const typedData = data.map((p: any) => ({ ...p, preco: Number(p.preco) }));
+      const data: ProdutoFromAPI[] = await response.json();
+      const typedData = data.map((p) => ({ ...p, preco: Number(p.preco) }));
       setProdutos(typedData);
     } catch (error) {
       console.error("Falha ao buscar produtos:", error);
@@ -68,7 +72,6 @@ export default function ProdutosPage() {
     setSuccessModalInfo({ isOpen: true, title: 'Produto Excluído!', message: 'O produto foi removido permanentemente do sistema.' });
   };
 
-  // O resto das suas funções (filteredData, etc.) continuam iguais...
   const filteredData = useMemo(() => {
     let items = produtos;
     if (activeTab !== 'Todos') {
@@ -121,7 +124,6 @@ export default function ProdutosPage() {
       <div className="w-full">
         <h1 className="text-3xl font-bold text-brand-dark mb-6">Gestão de Estoque</h1>
         <div className="overflow-hidden rounded-lg bg-white shadow-md">
-            {/* O JSX da sua página (barra de busca, abas, etc.) continua o mesmo */}
             <div className="p-4 sm:p-6 border-b border-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="relative w-full sm:w-72"><input type="text" placeholder="Buscar por nome ou SKU..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full rounded-md border-gray-300 pl-10 pr-4 py-2 focus:border-brand-green focus:ring-brand-green" /><div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"><ActionIcon path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" className="text-gray-400" /></div></div>

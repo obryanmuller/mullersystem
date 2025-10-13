@@ -6,6 +6,7 @@ import ModalEditarCliente from '@/components/ModalEditarCliente';
 import ModalExcluirCliente from '@/components/ModalExcluirCliente';
 import ModalSucesso from '@/components/ModalSucesso';
 
+// Tipo principal usado no front-end
 type Cliente = { 
     id: number; 
     nome: string; 
@@ -20,6 +21,9 @@ type Cliente = {
     enderecoEstado: string;
     enderecoRef: string | null;
 };
+
+// CORRIGIDO: Tipo para os dados brutos que vêm da API (onde Decimal é string)
+type ClienteFromAPI = Omit<Cliente, 'totalCompras'> & { totalCompras: string };
 
 const ActionIcon = ({ path, className = '' }: { path: string, className?: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -47,16 +51,15 @@ export default function ClientesPage() {
 
     const fetchClientes = async () => {
         try {
-            // Não precisa setar loading aqui se já está fazendo na função principal
             const response = await fetch('/api/clientes');
             if (!response.ok) throw new Error('Falha ao buscar clientes');
-            const data = await response.json();
-            const typedData = data.map((c: any) => ({ ...c, totalCompras: Number(c.totalCompras) }));
+            const data: ClienteFromAPI[] = await response.json(); // CORRIGIDO: Usa o tipo da API
+            const typedData = data.map((c) => ({ ...c, totalCompras: Number(c.totalCompras) }));
             setClientes(typedData);
         } catch (error) {
             console.error("Falha ao buscar clientes:", error);
         } finally {
-            setIsLoading(false); // Garante que o loading termine mesmo se houver erro
+            setIsLoading(false);
         }
     };
 
@@ -64,7 +67,8 @@ export default function ClientesPage() {
         setIsLoading(true);
         fetchClientes();
     }, []);
-
+    
+    // ... O restante do arquivo continua exatamente o mesmo ...
     const handleClientAdded = () => {
         fetchClientes();
         setSuccessModalInfo({ isOpen: true, title: 'Cliente Adicionado!', message: 'O novo cliente foi cadastrado com sucesso.' });
@@ -80,7 +84,6 @@ export default function ClientesPage() {
         setSuccessModalInfo({ isOpen: true, title: 'Cliente Excluído!', message: 'O cliente foi removido permanentemente do sistema.' });
     };
     
-    // O resto das suas funções (filteredData, paginatedData, etc.) continuam iguais...
     const filteredData = useMemo(() => {
         return clientes.filter(cliente =>
             cliente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,7 +115,6 @@ export default function ClientesPage() {
         if (status === 'Ativo') { return <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">Ativo</span>; }
         return <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">Inativo</span>;
     };
-
 
     return (
         <>
