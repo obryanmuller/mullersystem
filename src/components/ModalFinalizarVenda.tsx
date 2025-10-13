@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ModalAdicionarCliente from './ModalAdicionarCliente'; 
 
 // Tipos
@@ -22,15 +22,6 @@ type ModalProps = {
   onFinalize: (saleData: SaleFinalizationData) => void;
 };
 
-const mockClientes: Cliente[] = [
-  { id: 1, nome: 'João da Silva' },
-  { id: 2, nome: 'Maria Oliveira' },
-  { id: 3, nome: 'Cliente Final' },
-  { id: 4, nome: 'Pedro Álvares' },
-  { id: 5, nome: 'Ana Costa' },
-  { id: 6, nome: 'Carlos Souza' },
-];
-
 export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize }: ModalProps) {
   const [paymentMethod, setPaymentMethod] = useState('Cartão de Crédito');
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
@@ -38,11 +29,40 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
   
   const [searchTerm, setSearchTerm] = useState('');
   const [showResults, setShowResults] = useState(false); 
+  
+  // --- MELHORIA: Busca clientes reais da API ---
+  const [allClients, setAllClients] = useState<Cliente[]>([]);
+  const [isLoadingClients, setIsLoadingClients] = useState(false);
+
+  const fetchClients = async () => {
+    setIsLoadingClients(true);
+    try {
+        const response = await fetch('/api/clientes');
+        if(response.ok) {
+            const data = await response.json();
+            setAllClients(data);
+        } else {
+            console.error("Falha ao buscar clientes");
+        }
+    } catch (error) {
+        console.error("Erro na requisição de clientes:", error);
+    } finally {
+        setIsLoadingClients(false);
+    }
+  };
+
+  // Busca os clientes sempre que o modal principal for aberto
+  useEffect(() => {
+    if (isOpen) {
+        fetchClients();
+    }
+  }, [isOpen]);
+
 
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    if (paymentMethod === 'A Prazo' && selectedClient === null) {
+    if (paymentMethod === 'A Prazo' && !selectedClient) {
       alert('⚠️ Para pagamentos "A Prazo", é obrigatório selecionar um cliente.');
       return;
     }
@@ -56,7 +76,7 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
     onFinalize(saleData);
   };
 
-  const filteredClients = mockClientes.filter(cliente =>
+  const filteredClients = allClients.filter(cliente =>
     cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
@@ -109,23 +129,17 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
                 <div className="relative w-full">
                     <input 
                       type="text"
-                      placeholder="Pesquisar ou Selecionar Cliente..."
+                      placeholder={isLoadingClients ? "Carregando clientes..." : "Pesquisar ou Selecionar Cliente..."}
                       value={searchTerm}
+                      disabled={isLoadingClients}
                       onChange={(e) => {
                           setSearchTerm(e.target.value);
-                          setShowResults(true);
+                          if(e.target.value) setShowResults(true);
                           setSelectedClient(null);
                       }}
                       onFocus={() => setShowResults(true)}
                       onBlur={() => setTimeout(() => setShowResults(false), 200)}
-                      className={`w-full rounded-md shadow-sm pr-10 transition-all 
-                        focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-brand-green 
-                        border-gray-300 bg-white p-2.5
-                        ${
-                            isClientRequired && selectedClient === null 
-                                ? 'border-red-500 ring-1 ring-red-500'
-                                : ''
-                        }`}
+                      className={`w-full rounded-md shadow-sm pr-10 transition-all focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-brand-green border-gray-300 bg-white p-2.5 ${isClientRequired && !selectedClient ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                     />
                     
                     {showResults && searchTerm.length > 0 && (
@@ -134,7 +148,7 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
                                 filteredClients.map(cliente => (
                                     <li
                                         key={cliente.id}
-                                        onClick={() => handleSelectClient(cliente)}
+                                        onMouseDown={() => handleSelectClient(cliente)}
                                         className="p-3 cursor-pointer hover:bg-brand-light transition-colors text-sm"
                                     >
                                         {cliente.nome}
@@ -181,9 +195,10 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
         isOpen={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
         onClientAdded={() => {
-            // Função vazia para satisfazer a prop.
-            // Poderíamos adicionar uma lógica aqui para buscar o novo cliente e selecioná-lo.
-            console.log("Cliente adicionado a partir do modal de vendas.");
+            // Após adicionar um novo cliente, fechamos o modal de adição
+            // e buscamos a lista de clientes novamente para que ele apareça na busca.
+            setIsClientModalOpen(false);
+            fetchClients();
         }}
       />
     </>
