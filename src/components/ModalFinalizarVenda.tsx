@@ -78,7 +78,7 @@ export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize
     setShowResults(false);
   };
 
-  const paymentMethods = ['Dinheiro', 'Cartão de Crédito', 'PIX', 'A Prazo'];
+  const paymentMethods = ['Dinheiro', 'Cartão', 'PIX', 'A Prazo'];
   const isClientRequired = paymentMethod === 'A Prazo';
 
   return (
