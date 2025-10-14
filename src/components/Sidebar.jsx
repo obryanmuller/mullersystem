@@ -1,7 +1,7 @@
-// src/components/Sidebar.jsx (ou o nome do seu arquivo)
+// src/components/Sidebar.jsx
 "use client";
 
-import { useState } from 'react'; // <--- Importar useState
+import { useState } from 'react'; 
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -116,6 +116,16 @@ export default function Sidebar() {
               >
                 <Icon path="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z" />
                 Vendas
+              </Link>
+            </li>
+            <li className="mb-2">
+              <Link // NOVO LINK ADICIONADO
+                href="/main/historico" 
+                className={`${linkStyle} ${isActive('/main/historico') ? activeLinkStyle : inactiveLinkStyle}`}
+                onClick={handleLinkClick}
+              >
+                <Icon path="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2h2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v2M7 7h10" />
+                Histórico
               </Link>
             </li>
           </ul>

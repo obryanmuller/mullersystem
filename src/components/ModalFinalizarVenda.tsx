@@ -22,7 +22,7 @@ type ModalProps = {
 };
 
 export default function ModalFinalizarVenda({ isOpen, onClose, total, onFinalize }: ModalProps) {
-  const [paymentMethod, setPaymentMethod] = useState('Cartão de Crédito');
+  const [paymentMethod, setPaymentMethod] = useState('Cartão');
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');

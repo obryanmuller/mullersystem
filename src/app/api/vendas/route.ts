@@ -1,9 +1,105 @@
+// obryanmuller/mullersystem/mullersystem-72aa8aafde1da53f599f9c5c84aac0698a9390fe/src/app/api/vendas/route.ts
+
 import { NextResponse, NextRequest } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { decrypt } from '@/lib/crypto';
 
-const prisma = new PrismaClient();
+// GET: Busca o histórico de vendas com paginação e filtro
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    
+    // Parâmetros de Paginação e Busca
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '10', 10); // 10 itens por página como padrão
+    const searchTerm = searchParams.get('search') || '';
+    
+    const skip = (page - 1) * limit;
 
+    // Constrói a cláusula WHERE para busca (nome do cliente ou ID da venda)
+    let whereClause: any = {};
+    if (searchTerm) {
+        // Tenta converter para número para buscar por ID
+        const searchId = parseInt(searchTerm, 10);
+        
+        // Verifica se é uma busca por ID
+        if (!isNaN(searchId)) {
+            whereClause = { id: searchId };
+        } else {
+            // Busca por nome do cliente
+            whereClause = {
+                cliente: {
+                    nome: {
+                        contains: searchTerm,
+                        mode: 'insensitive', // Permite busca sem case-sensitive
+                    }
+                }
+            };
+        }
+    }
+
+    // 1. Obter o total de vendas filtradas (para calcular o total de páginas)
+    const totalVendas = await prisma.venda.count({ where: whereClause });
+
+    // 2. Obter as vendas paginadas e filtradas
+    const vendas = await prisma.venda.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' },
+      skip: skip,
+      take: limit,
+      include: {
+        cliente: true,
+        itens: {
+          include: {
+            produto: true,
+          },
+        },
+      },
+    });
+
+    const serializableVendas = vendas.map(venda => {
+      let clienteData = null;
+      if (venda.cliente) {
+        clienteData = {
+          ...venda.cliente,
+          // Descriptografa o CPF para exibição
+          cpf: decrypt(venda.cliente.cpf),
+          totalCompras: Number(venda.cliente.totalCompras),
+        };
+      }
+      
+      return {
+        ...venda,
+        total: Number(venda.total),
+        cliente: clienteData,
+        itens: venda.itens.map(item => ({
+          ...item,
+          preco: Number(item.preco),
+          produto: {
+            nome: item.produto.nome,
+            sku: item.produto.sku,
+            preco: Number(item.produto.preco),
+          },
+        })),
+      };
+    });
+
+    // Retorna os dados, a página atual e o total de vendas
+    return NextResponse.json({
+        data: serializableVendas,
+        currentPage: page,
+        totalPages: Math.ceil(totalVendas / limit),
+        totalVendas: totalVendas,
+        limit: limit,
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar histórico de vendas:', error);
+    return NextResponse.json({ error: 'Erro ao buscar histórico de vendas' }, { status: 500 });
+  }
+}
+
+// POST: Rota para registrar novas vendas (mantida)
 export async function POST(request: NextRequest) {
   try {
     const { total, pagamento, clienteId, itens } = await request.json();
