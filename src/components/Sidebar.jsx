@@ -128,6 +128,16 @@ export default function Sidebar() {
                 Histórico
               </Link>
             </li>
+             <li className="mb-2">
+              <Link // NOVO LINK ADICIONADO
+                href="/main/caixa" 
+                className={`${linkStyle} ${isActive('/main/caixa') ? activeLinkStyle : inactiveLinkStyle}`}
+                onClick={handleLinkClick}
+              >
+                <Icon path="M17 9V7a2 2 0 00-2-2H9a2 2 0 00-2 2v2m7 5l-4 4-4-4m4 4V9" />
+                Fluxo de Caixa
+              </Link>
+            </li>
           </ul>
         </nav>
       </aside>

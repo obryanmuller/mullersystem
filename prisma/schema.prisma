@@ -75,3 +75,11 @@ model ItemVenda {
   produtoId  Int
   produto    Produto @relation(fields: [produtoId], references: [id])
 }
+
+model MovimentacaoCaixa {
+  id          Int      @id @default(autoincrement())
+  tipo        String   // 'ENTRADA' ou 'SAIDA'
+  valor       Decimal  @db.Decimal(10, 2)
+  descricao   String
+  dataHora    DateTime @default(now())
+}
