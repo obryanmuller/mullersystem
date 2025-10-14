@@ -5,12 +5,19 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // GET: Busca produto por ID
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
+// TIPO CORRIGIDO para satisfazer o compilador da Vercel
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    // Acesso direto a context.params.id (corrigido o erro de await)
-    const id = parseInt(context.params.id, 10); 
+    // Aguarda e desestrutura o id
+    const { id } = await context.params; 
+    const idNum = parseInt(id, 10);
+
+    if (isNaN(idNum)) {
+      return NextResponse.json({ error: 'ID de produto inválido' }, { status: 400 });
+    }
+    
     const produto = await prisma.produto.findUnique({ 
-        where: { id } 
+        where: { id: idNum } 
     });
 
     if (!produto) {
@@ -28,14 +35,17 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   }
 }
 
-// PUT: Atualiza um produto por ID (Corrigido e inclui estoqueMinimo)
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+// PUT: Atualiza um produto por ID
+// TIPO CORRIGIDO para satisfazer o compilador da Vercel
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const id = parseInt(context.params.id, 10);
+    // Aguarda e desestrutura o id
+    const { id } = await context.params;
+    const idNum = parseInt(id, 10);
     const data = await request.json();
 
     const updatedProduto = await prisma.produto.update({
-      where: { id },
+      where: { id: idNum },
       data: {
         nome: data.nome,
         sku: data.sku,
@@ -56,12 +66,15 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
   }
 }
 
-// DELETE: Exclui um produto por ID (Corrigido)
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+// DELETE: Exclui um produto por ID
+// TIPO CORRIGIDO para satisfazer o compilador da Vercel
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const id = parseInt(context.params.id, 10);
+    // Aguarda e desestrutura o id
+    const { id } = await context.params;
+    const idNum = parseInt(id, 10);
     
-    await prisma.produto.delete({ where: { id } });
+    await prisma.produto.delete({ where: { id: idNum } });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
