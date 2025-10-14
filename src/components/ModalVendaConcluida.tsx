@@ -1,7 +1,7 @@
-// obryanmuller/mullersystem/mullersystem-72aa8aafde1da53f599f9c5c84aac0698a9390fe/src/components/ModalVendaConcluida.tsx
+// src/components/ModalVendaConcluida.tsx
 "use client";
 
-import { useEffect } from 'react'; // Importar useEffect
+import { useEffect } from 'react';
 import CupomNaoFiscal from './CupomNaoFiscal';
 
 // --- Tipos ---
@@ -10,7 +10,6 @@ type CartItem = {
     quantidade: number; 
 };
 
-// CORREÇÃO: O tipo 'cliente' agora espera o objeto completo, assim como no CupomNaoFiscal
 type ClienteCompleto = {
     nome: string;
     cpf: string;
@@ -25,34 +24,35 @@ type Venda = {
   itens: CartItem[];
   total: number;
   pagamento: string;
-  cliente?: ClienteCompleto; // Usando o tipo completo e correto
+  cliente?: ClienteCompleto;
 };
 
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   venda: Venda;
-  isReprint?: boolean; // NOVO: Flag para reimpressão automática
+  isReprint?: boolean; // Flag para reimpressão automática
 };
 
 export default function ModalVendaConcluida({ isOpen, onClose, venda, isReprint = false }: ModalProps) {
-  if (!isOpen) return null;
 
-  // NOVO: Efeito para imprimir imediatamente se for reimpressão
+  // useEffect sempre chamado, nunca condicional
   useEffect(() => {
     if (isOpen && isReprint) {
-        // Usa setTimeout para garantir que o CupomNaoFiscal esteja no DOM antes de imprimir
         const timer = setTimeout(() => {
             window.print();
-            onClose(); // Fecha após disparar a impressão
+            onClose();
         }, 100);
         return () => clearTimeout(timer);
     }
   }, [isOpen, isReprint, onClose]);
 
+  // Se o modal não estiver aberto, nada é renderizado
+  if (!isOpen) return null;
+
   return (
     <>
-      {/* O modal que o usuário vê (Apenas se NÃO for reimpressão) */}
+      {/* Modal visível para o usuário (não usado em reimpressão) */}
       {!isReprint && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md text-center">
@@ -78,8 +78,8 @@ export default function ModalVendaConcluida({ isOpen, onClose, venda, isReprint 
           </div>
         </div>
       )}
-      
-      {/* O componente do cupom continua aqui, invisível, para ser impresso */}
+
+      {/* Cupom invisível para impressão */}
       <div className="print-only">
         {venda && <CupomNaoFiscal {...venda} />}
       </div>
