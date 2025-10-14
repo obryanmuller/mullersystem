@@ -1,7 +1,6 @@
 // src/app/main/historico/page.tsx
-
 "use client";
-
+import { GrNotes } from 'react-icons/gr';
 import { useState, useEffect, useCallback } from 'react'; 
 import ModalVendaConcluida from '@/components/ModalVendaConcluida';
 
@@ -206,8 +205,12 @@ export default function HistoricoPage() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-brand-green">R$ {venda.total.toFixed(2)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{venda.pagamento}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button onClick={() => handleReprint(venda)} className="text-gray-400 hover:text-blue-600" title="Reimprimir Nota">
-                                                    <ActionIcon path="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m0 0l-4 4m4-4l4 4m-4 4V9a2 2 0 012-2h4a2 2 0 012 2v8m-4-4h.01" />
+                                                <button 
+                                                    onClick={() => handleReprint(venda)} 
+                                                    className="text-gray-400 hover:text-blue-600" 
+                                                    title="Reimprimir Nota"
+                                                >
+                                                    <GrNotes className="w-5 h-5" />
                                                 </button>
                                             </td>
                                         </tr>
