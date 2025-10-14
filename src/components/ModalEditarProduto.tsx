@@ -1,7 +1,9 @@
+// obryanmuller/mullersystem/mullersystem-72aa8aafde1da53f599f9c5c84aac0698a9390fe/src/components/ModalEditarProduto.tsx
 "use client";
 import { useState, useEffect } from 'react';
 
-type Produto = { id: number; nome: string; sku: string; preco: number; quantidade: number; };
+// ATUALIZADO: Adicionando estoqueMinimo ao tipo Produto
+type Produto = { id: number; nome: string; sku: string; preco: number; quantidade: number; estoqueMinimo: number };
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -10,7 +12,8 @@ type ModalProps = {
 };
 
 export default function ModalEditarProduto({ isOpen, onClose, produto, onProductUpdated }: ModalProps) {
-  const [formData, setFormData] = useState({ nome: '', sku: '', preco: '0', quantidade: '0' });
+  // ATUALIZADO: Adicionando estoqueMinimo ao estado inicial
+  const [formData, setFormData] = useState({ nome: '', sku: '', preco: '0', quantidade: '0', estoqueMinimo: '0' });
 
   useEffect(() => {
     if (produto) {
@@ -19,6 +22,7 @@ export default function ModalEditarProduto({ isOpen, onClose, produto, onProduct
         sku: produto.sku,
         preco: String(produto.preco),
         quantidade: String(produto.quantidade),
+        estoqueMinimo: String(produto.estoqueMinimo), // <-- CARREGA VALOR
       });
     }
   }, [produto]);
@@ -39,7 +43,8 @@ export default function ModalEditarProduto({ isOpen, onClose, produto, onProduct
         body: JSON.stringify({
             ...formData,
             preco: parseFloat(formData.preco),
-            quantidade: parseInt(formData.quantidade, 10)
+            quantidade: parseInt(formData.quantidade, 10),
+            estoqueMinimo: parseInt(formData.estoqueMinimo, 10) // <-- CONVERTE ANTES DE ENVIAR
         }),
       });
 
@@ -66,10 +71,23 @@ export default function ModalEditarProduto({ isOpen, onClose, produto, onProduct
         <h2 className="text-2xl font-bold mb-6 text-brand-dark">Editar Produto: {produto.nome}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
             <div><label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome do Produto</label><input type="text" id="nome" name="nome" value={formData.nome} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div><label htmlFor="sku" className="block text-sm font-medium text-gray-700">SKU</label><input type="text" id="sku" name="sku" value={formData.sku} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
-                <div><label htmlFor="preco" className="block text-sm font-medium text-gray-700">Preço (R$)</label><input type="number" step="0.01" id="preco" name="preco" value={formData.preco} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
-                <div><label htmlFor="quantidade" className="block text-sm font-medium text-gray-700">Quantidade</label><input type="number" id="quantidade" name="quantidade" value={formData.quantidade} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-1"><label htmlFor="sku" className="block text-sm font-medium text-gray-700">SKU</label><input type="text" id="sku" name="sku" value={formData.sku} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
+                <div className="md:col-span-1"><label htmlFor="preco" className="block text-sm font-medium text-gray-700">Preço (R$)</label><input type="number" step="0.01" id="preco" name="preco" value={formData.preco} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
+                <div className="md:col-span-1"><label htmlFor="quantidade" className="block text-sm font-medium text-gray-700">Quantidade</label><input type="number" id="quantidade" name="quantidade" value={formData.quantidade} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" /></div>
+                <div className="md:col-span-1">
+                    <label htmlFor="estoqueMinimo" className="block text-sm font-medium text-gray-700">Qtd. Mínima</label>
+                    <input 
+                        type="number" 
+                        id="estoqueMinimo" 
+                        name="estoqueMinimo" 
+                        value={formData.estoqueMinimo} 
+                        onChange={handleChange} 
+                        required 
+                        min={0}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-green focus:ring-brand-green" 
+                    />
+                </div>
             </div>
             <div className="flex justify-end gap-4 pt-4">
                 <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>

@@ -1,3 +1,4 @@
+// obryanmuller/mullersystem/mullersystem-72aa8aafde1da53f599f9c5c84aac0698a9390fe/src/components/ModalAdicionarProduto.jsx
 "use client";
 
 export default function ModalAdicionarProduto({ isOpen, onClose, onProductAdded }) {
@@ -23,9 +24,9 @@ export default function ModalAdicionarProduto({ isOpen, onClose, onProductAdded 
       }
       
       if (onProductAdded) {
-        onProductAdded(); // Notifica a página principal sobre o sucesso
+        onProductAdded();
       }
-      onClose(); // Fecha este modal
+      onClose(); 
     } catch (error) {
       console.error(error);
       alert(`Erro ao salvar produto: ${error.message}`);
@@ -37,11 +38,13 @@ export default function ModalAdicionarProduto({ isOpen, onClose, onProductAdded 
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Adicionar Novo Produto</h2>
         <form onSubmit={handleSubmit}>
-          {/* O JSX do seu formulário continua o mesmo */}
+          {/* Nome do Produto */}
           <div className="mb-4">
             <label htmlFor="nome" className="block text-gray-700 font-semibold mb-2">Nome do Produto</label>
             <input type="text" id="nome" name="nome" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" required />
           </div>
+          
+          {/* SKU e Preço */}
           <div className="flex gap-4 mb-4">
             <div className="w-1/2">
               <label htmlFor="sku" className="block text-gray-700 font-semibold mb-2">SKU</label>
@@ -52,10 +55,28 @@ export default function ModalAdicionarProduto({ isOpen, onClose, onProductAdded 
               <input type="number" step="0.01" id="preco" name="preco" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" required />
             </div>
           </div>
-          <div className="mb-6">
-            <label htmlFor="quantidade" className="block text-gray-700 font-semibold mb-2">Quantidade em Estoque</label>
-            <input type="number" id="quantidade" name="quantidade" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" required />
+          
+          {/* Quantidade em Estoque e Qtd. Mínima */}
+          <div className="flex gap-4 mb-6"> 
+            <div className="w-1/2">
+              <label htmlFor="quantidade" className="block text-gray-700 font-semibold mb-2">Qtd. Estoque</label>
+              <input type="number" id="quantidade" name="quantidade" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" required />
+            </div>
+            <div className="w-1/2"> 
+              <label htmlFor="estoqueMinimo" className="block text-gray-700 font-semibold mb-2">Qtd. Mínima (Alerta)</label>
+              <input 
+                type="number" 
+                id="estoqueMinimo" 
+                name="estoqueMinimo" 
+                defaultValue={10} 
+                min={0}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" 
+                required 
+              />
+            </div>
           </div>
+          
+          {/* Botões */}
           <div className="flex justify-end gap-4">
             <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300">
               Cancelar

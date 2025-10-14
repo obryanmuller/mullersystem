@@ -1,3 +1,4 @@
+// obryanmuller/mullersystem/mullersystem-72aa8aafde1da53f599f9c5c84aac0698a9390fe/src/app/main/produtos/page.tsx
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -6,11 +7,18 @@ import ModalEditarProduto from '@/components/ModalEditarProduto';
 import ModalExcluirProduto from '@/components/ModalExcluirProduto';
 import ModalSucesso from '@/components/ModalSucesso';
 
-// Tipos
-type Produto = { id: number; nome: string; sku: string; preco: number; quantidade: number; };
+// Tipos atualizados
+type Produto = { 
+    id: number; 
+    nome: string; 
+    sku: string; 
+    preco: number; 
+    quantidade: number;
+    estoqueMinimo: number; // <-- ATUALIZADO
+};
 
-// Tipo para dados brutos da API (onde Decimal é string)
-type ProdutoFromAPI = Omit<Produto, 'preco'> & { preco: string };
+// Tipo para dados brutos da API
+type ProdutoFromAPI = Omit<Produto, 'preco' | 'estoqueMinimo'> & { preco: string, estoqueMinimo: string };
 
 
 const ActionIcon = ({ path, className = '' }: { path: string, className?: string }) => (
@@ -43,7 +51,11 @@ export default function ProdutosPage() {
       const response = await fetch('/api/produtos');
       if (!response.ok) throw new Error('Erro ao buscar dados da API');
       const data: ProdutoFromAPI[] = await response.json();
-      const typedData = data.map((p) => ({ ...p, preco: Number(p.preco) }));
+      const typedData = data.map((p) => ({ 
+        ...p, 
+        preco: Number(p.preco),
+        estoqueMinimo: Number(p.estoqueMinimo), // <-- CONVERSÃO
+      }));
       setProdutos(typedData);
     } catch (error) {
       console.error("Falha ao buscar produtos:", error);
@@ -76,8 +88,9 @@ export default function ProdutosPage() {
     let items = produtos;
     if (activeTab !== 'Todos') {
       items = items.filter(p => {
-        if (activeTab === 'Em Estoque') return p.quantidade > 10;
-        if (activeTab === 'Baixo Estoque') return p.quantidade > 0 && p.quantidade <= 10;
+        const limite = p.estoqueMinimo; // <-- USA O VALOR CUSTOMIZADO
+        if (activeTab === 'Em Estoque') return p.quantidade > limite;
+        if (activeTab === 'Baixo Estoque') return p.quantidade > 0 && p.quantidade <= limite;
         if (activeTab === 'Esgotado') return p.quantidade === 0;
         return true;
       });
@@ -111,9 +124,10 @@ export default function ProdutosPage() {
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => { setSelectedItems(e.target.checked ? filteredData.map(p => p.id) : []); };
   const handleSelectItem = (id: number) => { setSelectedItems(prev => prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]); };
   
-  const getStockStatus = (quantity: number) => {
+  // LÓGICA ATUALIZADA para usar o minStock
+  const getStockStatus = (quantity: number, minStock: number) => {
     if (quantity === 0) return <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-800">Esgotado</span>;
-    if (quantity <= 10) return <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-800">Baixo Estoque</span>;
+    if (quantity <= minStock) return <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-800">Baixo Estoque</span>;
     return <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">Em Estoque</span>;
   };
   
@@ -135,7 +149,7 @@ export default function ProdutosPage() {
               {isLoading ? (<div className="text-center p-10">Carregando...</div>) : (
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50"><tr><th scope="col" className="px-6 py-3 align-middle"><input type="checkbox" onChange={handleSelectAll} className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green" /></th><th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Produto</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Qtd.</th><th scope="col" className="relative px-6 py-3"><span className="sr-only">Ações</span></th></tr></thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">{paginatedData.map((produto) => (<tr key={produto.id} className={selectedItems.includes(produto.id) ? 'bg-green-50' : ''}><td className="px-6 py-4 align-middle"><input type="checkbox" checked={selectedItems.includes(produto.id)} onChange={() => handleSelectItem(produto.id)} className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green" /></td><td className="px-6 py-4 align-middle"><div className="font-medium text-gray-900">{produto.nome}</div><div className="text-sm text-gray-500">{produto.sku} - R$ {produto.preco.toFixed(2)}</div></td><td className="px-6 py-4 align-middle">{getStockStatus(produto.quantidade)}</td><td className="px-6 py-4 align-middle text-sm text-gray-500">{produto.quantidade}</td><td className="px-6 py-4 align-middle text-right text-sm font-medium"><div className="flex items-center justify-end gap-4"><button onClick={() => handleOpenEditModal(produto)} className="text-gray-400 hover:text-blue-600" title="Editar"><ActionIcon path="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></button><button onClick={() => handleOpenDeleteModal(produto)} className="text-gray-400 hover:text-red-600" title="Excluir"><ActionIcon path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></button></div></td></tr>))}</tbody>
+                  <tbody className="divide-y divide-gray-200 bg-white">{paginatedData.map((produto) => (<tr key={produto.id} className={selectedItems.includes(produto.id) ? 'bg-green-50' : ''}><td className="px-6 py-4 align-middle"><input type="checkbox" checked={selectedItems.includes(produto.id)} onChange={() => handleSelectItem(produto.id)} className="h-4 w-4 rounded border-gray-300 text-brand-green focus:ring-brand-green" /></td><td className="px-6 py-4 align-middle"><div className="font-medium text-gray-900">{produto.nome}</div><div className="text-sm text-gray-500">{produto.sku} - R$ {produto.preco.toFixed(2)}</div></td><td className="px-6 py-4 align-middle">{getStockStatus(produto.quantidade, produto.estoqueMinimo)}</td><td className="px-6 py-4 align-middle text-sm text-gray-500">{produto.quantidade}</td><td className="px-6 py-4 align-middle text-right text-sm font-medium"><div className="flex items-center justify-end gap-4"><button onClick={() => handleOpenEditModal(produto)} className="text-gray-400 hover:text-blue-600" title="Editar"><ActionIcon path="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></button><button onClick={() => handleOpenDeleteModal(produto)} className="text-gray-400 hover:text-red-600" title="Excluir"><ActionIcon path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></button></div></td></tr>))}</tbody>
                 </table>
               )}
             </div>

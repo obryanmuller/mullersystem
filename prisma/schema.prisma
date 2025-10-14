@@ -17,6 +17,7 @@ model Produto {
   sku         String   @unique
   preco       Decimal  @db.Decimal(10, 2)
   quantidade  Int
+  estoqueMinimo Int @default(10) // <-- NOVO CAMPO: Valor padrão 10
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
