@@ -5,11 +5,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { FiMenu, FiX, FiHome, FiPackage, FiUsers, FiShoppingCart, FiClock, FiDollarSign } from 'react-icons/fi'; 
+import { FiMenu, FiX, FiHome, FiPackage, FiUsers, FiShoppingCart, FiClock, FiDollarSign, FiLogOut, FiUser } from 'react-icons/fi';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false); 
+  const [isOpen, setIsOpen] = useState(false);
+  const { usuario, logout } = useAuth();
 
   const isActive = (href) => pathname.startsWith(href);
   
@@ -43,6 +45,21 @@ export default function Sidebar() {
         <div className="p-6 flex justify-center items-center border-b border-gray-700">
           <Image src="/logo/LogoMverde.png" alt="Logo Muller System" width={150} height={50} />
         </div>
+
+        {/* Usuário Logado */}
+        {usuario && (
+          <div className="p-4 border-b border-gray-700">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center">
+                <FiUser className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate">{usuario.email}</p>
+                <p className="text-xs text-gray-400">{usuario.role === 'MASTER' ? 'Administrador' : 'Usuário'}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Navegação */}
         <nav className="flex-1 p-4">
@@ -79,7 +96,16 @@ export default function Sidebar() {
             </li>
           </ul>
         </nav>
-      </aside>
-    </>
-  );
-}
+
+        {/* Logout */}
+        <div className="p-4 border-t border-gray-700">
+          <button
+            onClick={() => {
+              logout();
+              handleLinkClick();
+            }}
+            className={`w-full ${linkStyle} ${inactiveLinkStyle} justify-center`}
+          >
+            <FiLogOut className="w-5 h-5 mr-2" /> Sair
+          </button>
+        </div>
