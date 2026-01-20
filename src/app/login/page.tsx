@@ -1,14 +1,56 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Erro ao fazer login');
+        return;
+      }
+
+      // Login bem-sucedido
+      localStorage.setItem('usuario', JSON.stringify(data));
+      router.push('/main/dashboard');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Erro ao conectar com o servidor';
+      setError(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-2">
       {/* Coluna da Esquerda (Branding) */}
       <div className="hidden items-center justify-center bg-brand-dark p-12 md:flex">
         <div className="flex flex-col items-center text-center">
           <Image
-            src="/logo/LogoSideBar.png" // Caminho para sua logo na pasta public
+            src="/logo/LogoSideBar.png"
             alt="Logo Muller System"
             width={200}
             height={200}
@@ -33,7 +75,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="space-y-6">
+          {error && (
+            <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="email"
@@ -46,6 +94,8 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-brand-green focus:outline-none focus:ring-brand-green sm:text-sm"
               />
@@ -63,6 +113,8 @@ export default function LoginPage() {
                 name="password"
                 type="password"
                 autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-brand-green focus:outline-none focus:ring-brand-green sm:text-sm"
               />
@@ -79,16 +131,13 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div>
-                <Link href="/main/dashboard">
-              <button
-                type="submit"
-                className="flex w-full justify-center rounded-md border border-transparent bg-brand-green py-2 px-4 text-sm font-medium text-white shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-offset-2"
-              >
-                Entrar
-              </button>
-              </Link>
-            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex w-full justify-center rounded-md border border-transparent bg-brand-green py-2 px-4 text-sm font-medium text-white shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-green focus:ring-offset-2 disabled:opacity-50"
+            >
+              {isLoading ? 'Entrando...' : 'Entrar'}
+            </button>
           </form>
 
           <p className="mt-8 text-center text-sm text-gray-600">
