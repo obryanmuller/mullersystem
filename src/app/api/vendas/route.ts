@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { decrypt } from '@/lib/crypto';
 import type { Prisma } from '@prisma/client';
 
+// Tipos auxiliares
 type VendaComRelacionamentos = Prisma.VendaGetPayload<{
   include: {
     cliente: true;
@@ -10,6 +11,7 @@ type VendaComRelacionamentos = Prisma.VendaGetPayload<{
   };
 }>;
 
+// GET: Busca o histórico de vendas (MANTIDO)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -88,5 +90,97 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Erro ao buscar histórico de vendas:', error);
     return NextResponse.json({ error: 'Erro ao buscar histórico de vendas' }, { status: 500 });
+  }
+}
+
+// POST: Cria uma nova venda e atualiza o estoque (SOLUÇÃO DO PROBLEMA)
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { total, pagamento, clienteId, itens } = body;
+
+    // Validação básica
+    if (!total || !pagamento || !itens || itens.length === 0) {
+      return NextResponse.json({ error: 'Dados da venda inválidos' }, { status: 400 });
+    }
+
+    // Transaction garante que: Venda Salva + Estoque Atualizado (ou nada feito se der erro)
+    const vendaCriada = await prisma.$transaction(async (tx) => {
+      // 1. Criar a Venda e os Itens
+      const novaVenda = await tx.venda.create({
+        data: {
+          total: total,
+          pagamento: pagamento,
+          clienteId: clienteId || null,
+          itens: {
+            create: itens.map((item: any) => ({
+              produtoId: item.produtoId,
+              quantidade: item.quantidade,
+              preco: item.preco
+            }))
+          }
+        },
+        include: {
+          cliente: true,
+          itens: {
+            include: {
+              produto: true
+            }
+          }
+        }
+      });
+
+      // 2. Atualizar o estoque dos produtos (Loop)
+      for (const item of itens) {
+        await tx.produto.update({
+          where: { id: item.produtoId },
+          data: {
+            quantidade: {
+              decrement: item.quantidade
+            }
+          }
+        });
+      }
+
+      // 3. Se tiver cliente, atualiza o total de compras dele
+      if (clienteId) {
+        await tx.cliente.update({
+          where: { id: clienteId },
+          data: {
+            totalCompras: {
+              increment: total
+            }
+          }
+        });
+      }
+
+      return novaVenda;
+    });
+
+    // Formata a resposta para o frontend
+    const responseData = {
+      id: vendaCriada.id,
+      total: Number(vendaCriada.total),
+      pagamento: vendaCriada.pagamento,
+      cliente: vendaCriada.cliente ? {
+         nome: vendaCriada.cliente.nome,
+         cpf: decrypt(vendaCriada.cliente.cpf), 
+         enderecoRua: vendaCriada.cliente.enderecoRua,
+         enderecoBairro: vendaCriada.cliente.enderecoBairro,
+         enderecoCidade: vendaCriada.cliente.enderecoCidade,
+         enderecoEstado: vendaCriada.cliente.enderecoEstado,
+      } : undefined,
+      itens: vendaCriada.itens.map(item => ({
+        produto: { nome: item.produto.nome },
+        preco: Number(item.preco),
+        quantidade: item.quantidade
+      }))
+    };
+
+    return NextResponse.json(responseData, { status: 201 });
+
+  } catch (error) {
+    console.error("Erro ao processar venda:", error);
+    return NextResponse.json({ error: 'Erro interno ao processar a venda' }, { status: 500 });
   }
 }
