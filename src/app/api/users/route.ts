@@ -30,14 +30,16 @@ export async function POST(request: NextRequest) {
         });
 
         // Remove o hash da senha antes de retornar
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { passwordHash: _, ...usuarioRetorno } = novoUsuario;
 
         return NextResponse.json(usuarioRetorno, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const prismaError = error as { code?: string; meta?: { target?: string[] } };
         console.error("Erro ao criar usuário:", error);
         
-        if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+        if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
              return NextResponse.json({ error: 'Este email já está cadastrado.' }, { status: 409 });
         }
         

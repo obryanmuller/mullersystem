@@ -39,8 +39,9 @@ export default function UsuariosPage() {
                 message: `O novo usuário ${formData.email} foi cadastrado com sucesso e tem a função de ${formData.role}.` 
             });
             setFormData({ email: '', password: '', role: 'COMMON' }); // Resetar formulário
-        } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido';
+            alert(`Erro: ${errorMsg}`);
         } finally {
             setIsLoading(false);
         }

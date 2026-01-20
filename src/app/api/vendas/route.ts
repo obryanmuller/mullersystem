@@ -3,7 +3,20 @@ import prisma from '@/lib/prisma';
 import { decrypt } from '@/lib/crypto';
 import type { Prisma } from '@prisma/client';
 
-// Tipos auxiliares
+// 1. Definição dos tipos para evitar erros de build (noImplicitAny)
+interface ItemVendaInput {
+  produtoId: number;
+  quantidade: number;
+  preco: number;
+}
+
+interface VendaBody {
+  total: number;
+  pagamento: string;
+  clienteId?: number | null;
+  itens: ItemVendaInput[];
+}
+
 type VendaComRelacionamentos = Prisma.VendaGetPayload<{
   include: {
     cliente: true;
@@ -11,7 +24,7 @@ type VendaComRelacionamentos = Prisma.VendaGetPayload<{
   };
 }>;
 
-// GET: Busca o histórico de vendas (MANTIDO)
+// GET: Busca o histórico de vendas
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -93,10 +106,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Cria uma nova venda e atualiza o estoque (SOLUÇÃO DO PROBLEMA)
+// POST: Cria uma nova venda e atualiza o estoque
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // 2. Tipagem explícita do corpo da requisição
+    const body = (await request.json()) as VendaBody;
     const { total, pagamento, clienteId, itens } = body;
 
     // Validação básica
@@ -104,7 +118,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Dados da venda inválidos' }, { status: 400 });
     }
 
-    // Transaction garante que: Venda Salva + Estoque Atualizado (ou nada feito se der erro)
+    // Transaction garante que: Venda Salva + Estoque Atualizado
     const vendaCriada = await prisma.$transaction(async (tx) => {
       // 1. Criar a Venda e os Itens
       const novaVenda = await tx.venda.create({
@@ -113,7 +127,7 @@ export async function POST(request: NextRequest) {
           pagamento: pagamento,
           clienteId: clienteId || null,
           itens: {
-            create: itens.map((item: any) => ({
+            create: itens.map((item) => ({
               produtoId: item.produtoId,
               quantidade: item.quantidade,
               preco: item.preco
@@ -170,7 +184,7 @@ export async function POST(request: NextRequest) {
          enderecoCidade: vendaCriada.cliente.enderecoCidade,
          enderecoEstado: vendaCriada.cliente.enderecoEstado,
       } : undefined,
-      itens: vendaCriada.itens.map(item => ({
+      itens: vendaCriada.itens.map((item) => ({
         produto: { nome: item.produto.nome },
         preco: Number(item.preco),
         quantidade: item.quantidade
