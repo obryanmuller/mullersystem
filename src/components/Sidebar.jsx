@@ -109,3 +109,7 @@ export default function Sidebar() {
             <FiLogOut className="w-5 h-5 mr-2" /> Sair
           </button>
         </div>
+      </aside>
+    </>
+  );
+}
