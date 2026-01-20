@@ -83,3 +83,12 @@ model MovimentacaoCaixa {
   descricao   String
   dataHora    DateTime @default(now())
 }
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("COMMON") // 'MASTER' ou 'COMMON'
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
