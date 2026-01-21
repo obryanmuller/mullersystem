@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ModalRecuperarSenha from '@/components/ModalRecuperarSenha';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isRecuperarSenhaOpen, setIsRecuperarSenhaOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,12 +124,13 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-end">
               <div className="text-sm">
-                <Link
-                  href="#"
+                <button
+                  type="button"
+                  onClick={() => setIsRecuperarSenhaOpen(true)}
                   className="font-medium text-brand-green hover:text-green-700"
                 >
                   Esqueceu a senha?
-                </Link>
+                </button>
               </div>
             </div>
 
@@ -139,18 +142,13 @@ export default function LoginPage() {
               {isLoading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-
-          <p className="mt-8 text-center text-sm text-gray-600">
-            Não tem uma conta?{' '}
-            <Link
-              href="#"
-              className="font-medium text-brand-green hover:text-green-700"
-            >
-              Cadastre-se
-            </Link>
-          </p>
         </div>
       </div>
+
+      <ModalRecuperarSenha
+        isOpen={isRecuperarSenhaOpen}
+        onClose={() => setIsRecuperarSenhaOpen(false)}
+      />
     </div>
   );
 }
