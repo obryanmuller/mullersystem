@@ -3,6 +3,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { FiCheck, FiX, FiClock, FiAlertCircle } from 'react-icons/fi';
+import ModalComprovantePagamento from '@/components/ModalComprovantePagamento';
+import ModalConfirmacao from '@/components/ModalConfirmacao';
 
 type Pendencia = {
   id: number;
@@ -44,6 +46,39 @@ export default function PendenciaPage() {
   const [pendencias, setPendencias] = useState<Pendencia[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'TODAS' | 'ABERTAS' | 'PAGAS' | 'ATRASADAS'>('TODAS');
+  const [comprovante, setComprovante] = useState<{
+    isOpen: boolean;
+    pendenciaId: number;
+    clienteNome: string;
+    valor: number;
+    descricao: string;
+    dataPago: string;
+  }>({
+    isOpen: false,
+    pendenciaId: 0,
+    clienteNome: '',
+    valor: 0,
+    descricao: '',
+    dataPago: '',
+  });
+
+  const [modalConfirmacao, setModalConfirmacao] = useState<{
+    isOpen: boolean;
+    titulo: string;
+    mensagem: string;
+    tipo: 'confirmar' | 'sucesso' | 'erro' | 'deletar';
+    acao: 'pagar' | 'deletar' | null;
+    pendenciaId: number | null;
+    isLoading: boolean;
+  }>({
+    isOpen: false,
+    titulo: '',
+    mensagem: '',
+    tipo: 'confirmar',
+    acao: null,
+    pendenciaId: null,
+    isLoading: false,
+  });
 
   const fetchPendencias = useCallback(async () => {
     setIsLoading(true);
@@ -64,57 +99,123 @@ export default function PendenciaPage() {
   }, [fetchPendencias]);
 
   const handleMarcarPago = async (id: number) => {
-    if (!confirm('Confirmar pagamento desta pendência?')) return;
-
-    try {
-      const response = await fetch(`/api/pendencias/${id}/pagar`, {
-        method: 'PATCH',
-      });
-
-      if (!response.ok) throw new Error('Falha ao marcar como pago');
-      
-      alert('Pendência marcada como paga!');
-      
-      // Atualizar status do cliente após marcar como pago
-      const pendencia = pendencias.find(p => p.id === id);
-      if (pendencia) {
-        await fetch(`/api/clientes/${pendencia.clienteId}/atualizar-status`, {
-          method: 'PATCH',
-        });
-      }
-      
-      fetchPendencias();
-    } catch (error) {
-      alert('Erro ao marcar como pago');
-      console.error(error);
-    }
+    setModalConfirmacao({
+      isOpen: true,
+      titulo: 'Confirmar Pagamento',
+      mensagem: 'Deseja marcar esta pendência como paga?',
+      tipo: 'confirmar',
+      acao: 'pagar',
+      pendenciaId: id,
+      isLoading: false,
+    });
   };
 
   const handleCancelar = async (id: number) => {
-    if (!confirm('Tem certeza que deseja cancelar esta pendência?')) return;
+    setModalConfirmacao({
+      isOpen: true,
+      titulo: 'Cancelar Pendência',
+      mensagem: 'Tem certeza que deseja cancelar esta pendência? Esta ação não pode ser desfeita.',
+      tipo: 'deletar',
+      acao: 'deletar',
+      pendenciaId: id,
+      isLoading: false,
+    });
+  };
+
+  const handleConfirmarModal = async () => {
+    const { acao, pendenciaId } = modalConfirmacao;
+    if (!acao || !pendenciaId) return;
+
+    setModalConfirmacao(prev => ({ ...prev, isLoading: true }));
 
     try {
-      const response = await fetch(`/api/pendencias/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Falha ao cancelar pendência');
-      
-      alert('Pendência cancelada!');
-      
-      // Atualizar status do cliente após cancelar
-      const pendencia = pendencias.find(p => p.id === id);
-      if (pendencia) {
-        await fetch(`/api/clientes/${pendencia.clienteId}/atualizar-status`, {
+      if (acao === 'pagar') {
+        const response = await fetch(`/api/pendencias/${pendenciaId}/pagar`, {
           method: 'PATCH',
         });
+
+        if (!response.ok) throw new Error('Falha ao marcar como pago');
+        
+        // Encontrar a pendência para exibir o comprovante
+        const pendencia = pendencias.find(p => p.id === pendenciaId);
+        if (pendencia) {
+          setComprovante({
+            isOpen: true,
+            pendenciaId: pendenciaId,
+            clienteNome: pendencia.cliente.nome,
+            valor: pendencia.valor,
+            descricao: pendencia.descricao,
+            dataPago: new Date().toISOString(),
+          });
+          
+          // Atualizar status do cliente após marcar como pago
+          await fetch(`/api/clientes/${pendencia.clienteId}/atualizar-status`, {
+            method: 'PATCH',
+          });
+        }
+        
+        setModalConfirmacao(prev => ({
+          ...prev,
+          isOpen: false,
+          acao: null,
+          pendenciaId: null,
+          isLoading: false,
+        }));
+        
+        fetchPendencias();
+      } else if (acao === 'deletar') {
+        const response = await fetch(`/api/pendencias/${pendenciaId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) throw new Error('Falha ao cancelar pendência');
+        
+        const pendencia = pendencias.find(p => p.id === pendenciaId);
+        if (pendencia) {
+          await fetch(`/api/clientes/${pendencia.clienteId}/atualizar-status`, {
+            method: 'PATCH',
+          });
+        }
+        
+        setModalConfirmacao(prev => ({
+          ...prev,
+          titulo: 'Sucesso!',
+          mensagem: 'Pendência cancelada com sucesso.',
+          tipo: 'sucesso',
+          acao: null,
+          isLoading: false,
+        }));
+        
+        setTimeout(() => {
+          setModalConfirmacao(prev => ({ ...prev, isOpen: false }));
+          fetchPendencias();
+        }, 2000);
       }
-      
-      fetchPendencias();
     } catch (error) {
-      alert('Erro ao cancelar pendência');
       console.error(error);
+      setModalConfirmacao(prev => ({
+        ...prev,
+        titulo: 'Erro!',
+        mensagem: 'Ocorreu um erro ao processar a ação. Tente novamente.',
+        tipo: 'erro',
+        acao: null,
+        isLoading: false,
+      }));
+      
+      setTimeout(() => {
+        setModalConfirmacao(prev => ({ ...prev, isOpen: false }));
+      }, 3000);
     }
+  };
+
+  const handleCancelarModal = () => {
+    setModalConfirmacao(prev => ({
+      ...prev,
+      isOpen: false,
+      acao: null,
+      pendenciaId: null,
+      isLoading: false,
+    }));
   };
 
   const filteredPendencias = pendencias.filter(p => {
@@ -246,6 +347,34 @@ export default function PendenciaPage() {
           </table>
         </div>
       </div>
+
+      <ModalComprovantePagamento
+        isOpen={comprovante.isOpen}
+        onClose={() => setComprovante({ ...comprovante, isOpen: false })}
+        pendenciaId={comprovante.pendenciaId}
+        clienteNome={comprovante.clienteNome}
+        valor={comprovante.valor}
+        descricao={comprovante.descricao}
+        dataPago={comprovante.dataPago}
+      />
+
+      <ModalConfirmacao
+        isOpen={modalConfirmacao.isOpen}
+        titulo={modalConfirmacao.titulo}
+        mensagem={modalConfirmacao.mensagem}
+        tipo={modalConfirmacao.tipo}
+        acao={modalConfirmacao.acao}
+        textoBotaoPrimario={
+          modalConfirmacao.acao === 'pagar'
+            ? 'Confirmar Pagamento'
+            : modalConfirmacao.acao === 'deletar'
+            ? 'Cancelar Pendência'
+            : 'OK'
+        }
+        onConfirm={handleConfirmarModal}
+        onCancel={handleCancelarModal}
+        isLoading={modalConfirmacao.isLoading}
+      />
     </div>
   );
 }
