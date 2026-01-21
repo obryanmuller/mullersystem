@@ -74,6 +74,15 @@ export default function PendenciaPage() {
       if (!response.ok) throw new Error('Falha ao marcar como pago');
       
       alert('Pendência marcada como paga!');
+      
+      // Atualizar status do cliente após marcar como pago
+      const pendencia = pendencias.find(p => p.id === id);
+      if (pendencia) {
+        await fetch(`/api/clientes/${pendencia.clienteId}/atualizar-status`, {
+          method: 'PATCH',
+        });
+      }
+      
       fetchPendencias();
     } catch (error) {
       alert('Erro ao marcar como pago');
@@ -92,6 +101,15 @@ export default function PendenciaPage() {
       if (!response.ok) throw new Error('Falha ao cancelar pendência');
       
       alert('Pendência cancelada!');
+      
+      // Atualizar status do cliente após cancelar
+      const pendencia = pendencias.find(p => p.id === id);
+      if (pendencia) {
+        await fetch(`/api/clientes/${pendencia.clienteId}/atualizar-status`, {
+          method: 'PATCH',
+        });
+      }
+      
       fetchPendencias();
     } catch (error) {
       alert('Erro ao cancelar pendência');

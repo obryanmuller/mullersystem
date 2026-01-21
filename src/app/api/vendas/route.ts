@@ -118,6 +118,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Dados da venda inválidos' }, { status: 400 });
     }
 
+    // Se for venda "A Prazo", validar se o cliente está ativo
+    if (pagamento === 'A Prazo' && clienteId) {
+      const cliente = await prisma.cliente.findUnique({
+        where: { id: clienteId }
+      });
+
+      if (!cliente) {
+        return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 });
+      }
+
+      if (cliente.status !== 'Ativo') {
+        return NextResponse.json(
+          { error: 'Não é possível fazer vendas a prazo para clientes inativos. Por favor, regularize as pendências do cliente.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Transaction garante que: Venda Salva + Estoque Atualizado
     const vendaCriada = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Criar a Venda e os Itens

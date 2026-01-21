@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import ModalFinalizarVenda from "@/components/ModalFinalizarVenda";
 import ModalVendaConcluida from "@/components/ModalVendaConcluida";
+import ModalClienteBloqueado from "@/components/ModalClienteBloqueado";
 
 // Tipos
 type Produto = { id: number; nome: string; sku: string; preco: number; quantidade: number };
@@ -61,6 +62,8 @@ export default function VendasPage() {
   const [lastSaleData, setLastSaleData] = useState<Venda | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [allProducts, setAllProducts] = useState<Produto[]>([]);
+  const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
+  const [blockedClientName, setBlockedClientName] = useState("");
 
   // Busca os produtos da API quando o componente é montado
   const fetchProducts = useCallback(async () => {
@@ -201,6 +204,16 @@ export default function VendasPage() {
 
       if (!response.ok) {
         const errorResult = await response.json();
+        
+        // Se for erro de cliente inativo, mostra o modal
+        if (errorResult.error && errorResult.error.includes('inativos')) {
+          const clienteName = saleData.client?.nome || 'Cliente';
+          setBlockedClientName(clienteName);
+          setIsBlockedModalOpen(true);
+          setIsPaymentModalOpen(false);
+          return;
+        }
+        
         throw new Error(errorResult.error || "Falha ao registrar a venda");
       }
 
@@ -463,6 +476,18 @@ export default function VendasPage() {
         onClose={() => setIsPaymentModalOpen(false)}
         onFinalize={handleFinalizeSale}
         total={total}
+      />
+      {lastSaleData && (
+        <ModalVendaConcluida
+          isOpen={isSuccessModalOpen}
+          onClose={handleNewSale}
+          venda={lastSaleData}
+        />
+      )}
+      <ModalClienteBloqueado
+        isOpen={isBlockedModalOpen}
+        onClose={() => setIsBlockedModalOpen(false)}
+        nomeCliente={blockedClientName}
       />
 
       {lastSaleData && (
