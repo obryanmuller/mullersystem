@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    unoptimized: true, // Desabilita otimização de imagem no Vercel
+  },
 };
 
 export default nextConfig;

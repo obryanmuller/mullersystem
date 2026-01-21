@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="hidden items-center justify-center bg-brand-dark p-12 md:flex">
         <div className="flex flex-col items-center text-center">
           <Image
-            src="/logo/LogoSideBar.png"
+            src="/logo/logoSideBar.png"
             alt="Logo Muller System"
             width={200}
             height={200}
@@ -87,7 +87,7 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                Email
+                Usuário
               </label>
               <input
                 id="email"
