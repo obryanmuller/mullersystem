@@ -56,8 +56,18 @@ export default function Sidebar() {
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className="w-full flex items-center space-x-3 hover:bg-gray-700 rounded-lg p-2 transition-colors"
             >
-              <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center flex-shrink-0">
-                <FiUser className="w-6 h-6" />
+              <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {usuario.email === 'Diqueli' ? (
+                  <Image 
+                    src="/logo/irmasBento.png" 
+                    alt="Perfil" 
+                    width={40} 
+                    height={40} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FiUser className="w-6 h-6" />
+                )}
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-semibold truncate">{usuario.email}</p>
