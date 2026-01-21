@@ -64,13 +64,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Se não houver data de vencimento, calcula como +30 dias
+    let vencimento = dataVencimento ? new Date(dataVencimento) : null;
+    if (!vencimento) {
+      vencimento = new Date();
+      vencimento.setDate(vencimento.getDate() + 30);
+    }
+
     const pendencia = await prisma.pendencia.create({
       data: {
         vendaId,
         clienteId,
         valor: parseFloat(valor),
         descricao: descricao || `Venda #${vendaId}`,
-        dataVencimento: dataVencimento ? new Date(dataVencimento) : null,
+        dataVencimento: vencimento,
         status: 'ABERTA'
       }
     });
@@ -82,7 +89,8 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: unknown) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     console.error('Erro ao criar pendência:', error);
     return NextResponse.json(
       { error: 'Erro ao criar pendência' },

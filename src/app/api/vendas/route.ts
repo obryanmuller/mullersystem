@@ -205,12 +205,17 @@ export async function POST(request: NextRequest) {
 
     // 5. Se for "A Prazo" com cliente, criar pendência (fora da transação)
     if (pagamento === 'A Prazo' && clienteId) {
+      // Calcular data de vencimento como +30 dias
+      const dataVencimento = new Date();
+      dataVencimento.setDate(dataVencimento.getDate() + 30);
+
       await prisma.pendencia.create({
         data: {
           vendaId: vendaCriada.id,
           clienteId: clienteId,
           valor: total,
           descricao: `Venda #${vendaCriada.id}`,
+          dataVencimento,
           status: 'ABERTA'
         }
       });
