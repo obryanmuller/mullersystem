@@ -36,9 +36,9 @@ const CupomTicket = ({ id, itens, total, pagamento, cliente, dataVenda }: Omit<C
     return (
         <div className="font-mono w-[794px] bg-white text-sm mx-auto p-8 rounded-lg shadow-lg border border-gray-300">
           <div className="text-center mb-6 border-b border-dashed border-gray-400 pb-3">
-            <p className="text-xl font-bold tracking-wide">MULLER SYSTEM AUTO PEÇAS</p>
-            <p className="text-[13px] text-gray-700 mt-1">CNPJ: 00.000.000/0001-00</p>
-            <p className="text-[13px] text-gray-700">Av. Primeiro de Maio, 123 - Ouro Fino - MG</p>
+            <p className="text-xl font-bold tracking-wide">IRMÃS BENTO AUTO PEÇAS</p>
+            <p className="text-[13px] text-gray-700 mt-1">CNPJ: 55.598.257/0001-89</p>
+            <p className="text-[13px] text-gray-700">Av. Primeiro de Maio, 124- Ouro Fino - MG</p>
           </div>
           <div className="border-b border-dashed border-gray-400 pb-3 mb-4">
             <div className="flex justify-between text-[15px]">
@@ -121,7 +121,7 @@ const NotaPromissoria = ({ total, cliente, dataVenda }: { total: number, cliente
             </div>
             <p className="mb-2">
                 Ao(s) <span className="font-semibold">{dataVencimentoExtenso}</span>, pagarei por esta única via de <span className="font-bold">NOTA PROMISSÓRIA</span> a{' '}
-                <span className="font-semibold">MULLER SYSTEM AUTO PEÇAS</span> (CPF/CNPJ: Seu CNPJ aqui) ou à sua ordem, a quantia de:
+                <span className="font-semibold">IRMÃS BENTO AUTO PEÇAS</span> CNPJ: 55598257/0001-89 à sua ordem, a quantia de:
             </p>
             <div className="border border-black p-2 text-center font-semibold mb-2">
                 {valorExtenso.toUpperCase()}

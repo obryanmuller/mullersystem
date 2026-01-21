@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Transaction garante que: Venda Salva + Estoque Atualizado
-    const vendaCriada = await prisma.$transaction(async (tx) => {
+    const vendaCriada = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Criar a Venda e os Itens
       const novaVenda = await tx.venda.create({
         data: {
@@ -170,16 +170,33 @@ export async function POST(request: NextRequest) {
 
       // 4. Criar movimentação de entrada no caixa
       const clienteNome = novaVenda.cliente?.nome || 'Consumidor Final';
-      await tx.movimentacaoCaixa.create({
-        data: {
-          tipo: 'ENTRADA',
-          valor: total,
-          descricao: `Venda #${novaVenda.id} | Cliente: ${clienteNome} | Pagamento: ${pagamento}`
-        }
-      });
+      
+      // Se não for "A Prazo", registra entrada imediata no caixa
+      if (pagamento !== 'A Prazo') {
+        await tx.movimentacaoCaixa.create({
+          data: {
+            tipo: 'ENTRADA',
+            valor: total,
+            descricao: `Venda #${novaVenda.id} | Cliente: ${clienteNome} | Pagamento: ${pagamento}`
+          }
+        });
+      }
 
       return novaVenda;
     });
+
+    // 5. Se for "A Prazo" com cliente, criar pendência (fora da transação)
+    if (pagamento === 'A Prazo' && clienteId) {
+      await prisma.pendencia.create({
+        data: {
+          vendaId: vendaCriada.id,
+          clienteId: clienteId,
+          valor: total,
+          descricao: `Venda #${vendaCriada.id}`,
+          status: 'ABERTA'
+        }
+      });
+    }
 
     // Formata a resposta para o frontend
     const responseData = {
