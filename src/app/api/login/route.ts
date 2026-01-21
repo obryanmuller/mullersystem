@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { decrypt } from '@/lib/crypto';
+import { generateToken } from '@/lib/jwt';
 
 export async function POST(request: NextRequest) {
     try {
@@ -41,16 +42,37 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Gerar token JWT
+        const token = await generateToken({
+            id: usuario.id,
+            email: usuario.email,
+            role: usuario.role,
+        });
+
         // Remover a senha antes de retornar
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { passwordHash: _, ...usuarioRetorno } = usuario;
 
-        // Criar resposta com cookie de sessão
-        const response = NextResponse.json(usuarioRetorno, { status: 200 });
+        // Criar resposta com token JWT em cookie
+        const response = NextResponse.json(
+            {
+                ...usuarioRetorno,
+                token,
+            },
+            { status: 200 }
+        );
         
-        // Armazenar informações do usuário no cookie (ou você pode usar JWT)
-        response.cookies.set('usuario', JSON.stringify(usuarioRetorno), {
+        // Armazenar JWT no cookie httpOnly
+        response.cookies.set('auth_token', token, {
             httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7 // 7 dias
+        });
+
+        // Manter cookie de usuário para acesso no frontend (sem senha)
+        response.cookies.set('usuario', JSON.stringify(usuarioRetorno), {
+            httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7 // 7 dias
