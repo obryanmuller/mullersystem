@@ -71,7 +71,6 @@ export async function GET(request: NextRequest) {
             saidas: fluxoDiario[date].saidas,
         }));
 
-
         return NextResponse.json({
             kpis: {
                 totalEntradas,
@@ -79,11 +78,18 @@ export async function GET(request: NextRequest) {
                 saldoFinal,
             },
             grafico: graficoData,
-            movimentacoes: movimentos.map(m => ({
-                ...m,
-                valor: Number(m.valor),
-                dataHora: m.dataHora.toISOString(), // Garante serialização
-            })),
+            movimentacoes: movimentos.map(m => {
+                const dataHoraISO = m.dataHora instanceof Date 
+                    ? m.dataHora.toISOString() 
+                    : new Date(m.dataHora).toISOString();
+                return {
+                    id: m.id,
+                    tipo: m.tipo,
+                    valor: Number(m.valor),
+                    descricao: m.descricao,
+                    dataHora: dataHoraISO,
+                };
+            }),
             periodo: {
                 startDate: startDate.toISOString().split('T')[0],
                 endDate: endDate.toISOString().split('T')[0],

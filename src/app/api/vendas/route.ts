@@ -168,6 +168,16 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // 4. Criar movimentação de entrada no caixa
+      const clienteNome = novaVenda.cliente?.nome || 'Consumidor Final';
+      await tx.movimentacaoCaixa.create({
+        data: {
+          tipo: 'ENTRADA',
+          valor: total,
+          descricao: `Venda #${novaVenda.id} | Cliente: ${clienteNome} | Pagamento: ${pagamento}`
+        }
+      });
+
       return novaVenda;
     });
 

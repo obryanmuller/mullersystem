@@ -117,6 +117,14 @@ export default function CaixaPage() {
     return () => clearTimeout(timer);
   }, [fetchData]);
 
+  // Poll automático a cada 30 segundos para atualizar dados em tempo real
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData();
+    }, 30000); // 30 segundos
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
   // Gráfico de fluxo de caixa
   const chartData = {
     labels:
