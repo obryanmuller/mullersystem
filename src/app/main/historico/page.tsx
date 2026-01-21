@@ -102,12 +102,11 @@ export default function HistoricoPage() {
             return;
         }
 
-        const headers = ["ID", "Data", "Cliente Nome", "Cliente CPF", "Total", "Pagamento", "Itens Vendidos"];
+        const headers = ["ID", "Data", "Cliente Nome", "Total", "Pagamento", "Itens Vendidos"];
         
         const csvRows = dataToExport.map(venda => {
             const date = new Date(venda.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); 
             const clienteNome = venda.cliente?.nome || 'Consumidor Final';
-            const clienteCpf = venda.cliente?.cpf || '';
             const total = venda.total.toFixed(2).replace('.', ','); 
             const pagamento = venda.pagamento;
             
@@ -119,7 +118,6 @@ export default function HistoricoPage() {
                 venda.id, 
                 date, 
                 clienteNome,
-                clienteCpf,
                 total, 
                 pagamento, 
                 `"${itensList}"` 
