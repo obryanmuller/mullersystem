@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
                     { status: 401 }
                 );
             }
-        } catch (error) {
+        } catch (error: unknown) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            console.error('Erro ao verificar senha:', error);
             return NextResponse.json(
                 { error: 'Email ou senha incorretos.' },
                 { status: 401 }

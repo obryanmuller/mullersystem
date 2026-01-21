@@ -80,7 +80,9 @@ export default function ModalAlterarSenha({
         onClose();
         onSuccess?.();
       }, 2000);
-    } catch (err) {
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      console.error('Erro ao alterar senha:', err);
       setError('Erro ao conectar com o servidor');
     } finally {
       setIsLoading(false);

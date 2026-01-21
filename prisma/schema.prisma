@@ -43,6 +43,8 @@ model Cliente {
 
   // RELACIONAMENTO: Um cliente pode ter muitas vendas
   vendas        Venda[]
+  // RELACIONAMENTO: Um cliente pode ter muitas pendências
+  pendencias    Pendencia[]
 }
 
 
@@ -60,6 +62,8 @@ model Venda {
 
   // RELACIONAMENTO: Uma venda é composta por vários itens
   itens       ItemVenda[]
+  // RELACIONAMENTO: Uma venda pode gerar uma ou mais pendências
+  pendencias  Pendencia[]
 }
 
 model ItemVenda {
@@ -82,6 +86,22 @@ model MovimentacaoCaixa {
   valor       Decimal  @db.Decimal(10, 2)
   descricao   String
   dataHora    DateTime @default(now())
+}
+
+model Pendencia {
+  id          Int      @id @default(autoincrement())
+  vendaId     Int
+  venda       Venda    @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  clienteId   Int
+  cliente     Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  valor       Decimal  @db.Decimal(10, 2)
+  descricao   String
+  dataPendencia DateTime @default(now())
+  dataVencimento DateTime?
+  dataPago    DateTime?
+  status      String   @default("ABERTA") // 'ABERTA', 'PAGA', 'ATRASADA'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model User {

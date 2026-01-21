@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { FiMenu, FiX, FiHome, FiPackage, FiUsers, FiShoppingCart, FiClock, FiDollarSign, FiLogOut, FiUser, FiKey } from 'react-icons/fi';
+import { FiMenu, FiX, FiHome, FiPackage, FiUsers, FiShoppingCart, FiClock, FiDollarSign, FiLogOut, FiUser, FiKey, FiAlertCircle } from 'react-icons/fi';
 import { useAuth } from '@/hooks/useAuth';
 import ModalAlterarSenha from './ModalAlterarSenha';
 
@@ -120,6 +120,11 @@ export default function Sidebar() {
             <li className="mb-2">
               <Link href="/main/historico" className={`${linkStyle} ${isActive('/main/historico') ? activeLinkStyle : inactiveLinkStyle}`} onClick={handleLinkClick}>
                 <FiClock className="w-5 h-5 mr-3" /> Histórico
+              </Link>
+            </li>
+            <li className="mb-2">
+              <Link href="/main/pendencia" className={`${linkStyle} ${isActive('/main/pendencia') ? activeLinkStyle : inactiveLinkStyle}`} onClick={handleLinkClick}>
+                <FiAlertCircle className="w-5 h-5 mr-3" /> Pendências
               </Link>
             </li>
             <li className="mb-2">
