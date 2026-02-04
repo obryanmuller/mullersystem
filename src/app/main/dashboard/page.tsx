@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import type { FormEvent } from 'react';
 import { FiPackage } from 'react-icons/fi';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import {
@@ -96,7 +97,7 @@ export default function DashboardPage() {
   const [isLookupLoading, setIsLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
 
-  const handleLookup = async (e?: any) => {
+  const handleLookup = async (e?: FormEvent<HTMLFormElement>) => {
     if (e?.preventDefault) e.preventDefault();
     setLookupError('');
     setProdutoInfo(null);
