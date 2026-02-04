@@ -4,9 +4,24 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// GET: Retorna todos os produtos
-export async function GET() {
+// GET: Retorna todos os produtos ou busca por SKU quando query param 'sku' for fornecido
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const sku = searchParams.get('sku');
+
+    if (sku) {
+      const produto = await prisma.produto.findUnique({ where: { sku } });
+      if (!produto) {
+        return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 });
+      }
+      return NextResponse.json({
+        ...produto,
+        preco: Number(produto.preco),
+        estoqueMinimo: Number(produto.estoqueMinimo),
+      });
+    }
+
     const produtos = await prisma.produto.findMany({
       orderBy: { nome: 'asc' },
     });
@@ -16,7 +31,8 @@ export async function GET() {
         estoqueMinimo: Number(p.estoqueMinimo)
     }));
     return NextResponse.json(serializableProdutos);
-  } catch {
+  } catch (error) {
+    console.error('Erro ao buscar produtos:', error);
     return NextResponse.json({ error: 'Erro ao buscar produtos' }, { status: 500 });
   }
 }
